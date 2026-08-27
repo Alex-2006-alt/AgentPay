@@ -110,6 +110,48 @@ async def init_db() -> None:
                         average_response_time=210.0,
                         status="active",
                     ),
+                    Service(
+                        id="srv_ocr_01",
+                        provider_id=provider.id,
+                        name="VisionText OCR Extraction",
+                        description="High-accuracy optical character recognition for documents and receipts",
+                        category="Vision",
+                        endpoint="/api/demo/ocr",
+                        price=0.002,
+                        currency="USDC",
+                        rating=4.7,
+                        success_rate=98.5,
+                        average_response_time=350.0,
+                        status="active",
+                    ),
+                    Service(
+                        id="srv_search_01",
+                        provider_id=provider.id,
+                        name="Quantum Web Search",
+                        description="Real-time internet indexing and semantic search",
+                        category="Information",
+                        endpoint="/api/demo/search",
+                        price=0.003,
+                        currency="USDC",
+                        rating=4.9,
+                        success_rate=99.9,
+                        average_response_time=80.0,
+                        status="active",
+                    ),
+                    Service(
+                        id="srv_image_01",
+                        provider_id=provider.id,
+                        name="Diffusion Art Generation",
+                        description="AI-powered high-resolution image synthesis",
+                        category="Vision",
+                        endpoint="/api/demo/generate_image",
+                        price=0.050,
+                        currency="USDC",
+                        rating=4.8,
+                        success_rate=97.0,
+                        average_response_time=1500.0,
+                        status="active",
+                    ),
                 ]
                 session.add_all(services)
 
@@ -151,7 +193,7 @@ async def init_db() -> None:
                     daily_limit=settings.DEFAULT_DAILY_LIMIT,
                     monthly_limit=settings.DEFAULT_MONTHLY_LIMIT,
                     auto_payment=settings.AUTO_PAYMENT_ENABLED,
-                    approved_services="srv_weather_01,srv_translate_01,srv_summarize_01",
+                    approved_services="srv_weather_01,srv_translate_01,srv_summarize_01,srv_ocr_01,srv_search_01,srv_image_01",
                 )
                 session.add(policy)
                 

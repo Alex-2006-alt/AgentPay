@@ -14,6 +14,14 @@ class SummarizeRequest(BaseModel):
     max_length: int = 100
 
 
+class OCRRequest(BaseModel):
+    image_url: str
+
+
+class ImageGenerateRequest(BaseModel):
+    prompt: str
+
+
 @router.get("/weather")
 async def get_weather(
     city: str = Query("New York", description="City to get weather for"),
@@ -76,5 +84,56 @@ async def summarize_text(
             "Settles micropayments reliably on EVM testnet",
             "Provides an auditable machine-to-machine commerce layer for AI agents",
         ],
+        "tx_proof": x_payment_tx,
+    }
+
+
+@router.post("/ocr")
+async def extract_text(
+    payload: OCRRequest,
+    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
+):
+    """Paid VisionText OCR API ($0.002 / call)."""
+    return {
+        "service": "VisionText OCR Extraction",
+        "price_paid": 0.002,
+        "currency": "USDC",
+        "extracted_text": "Invoice #4029 - Total Amount Due: $450.00 - Paid in Full",
+        "confidence": 0.98,
+        "tx_proof": x_payment_tx,
+    }
+
+
+@router.get("/search")
+async def web_search(
+    query: str = Query(..., description="Search query"),
+    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
+):
+    """Paid Web Index Search API ($0.003 / call)."""
+    return {
+        "service": "Quantum Web Search",
+        "price_paid": 0.003,
+        "currency": "USDC",
+        "query": query,
+        "results": [
+            {"title": "AgentPay Documentation", "url": "https://agentpay.network/docs"},
+            {"title": "How to settle micropayments on EVM", "url": "https://agentpay.network/blog/evm-settlement"},
+        ],
+        "tx_proof": x_payment_tx,
+    }
+
+
+@router.post("/generate_image")
+async def generate_image(
+    payload: ImageGenerateRequest,
+    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
+):
+    """Paid Diffusion Art API ($0.050 / call)."""
+    return {
+        "service": "Diffusion Art Generation",
+        "price_paid": 0.050,
+        "currency": "USDC",
+        "prompt": payload.prompt,
+        "image_url": "ipfs://QmYwAPJzv5CZsnA625s3Xf2sm5D14K5PGn4EQcqTz4mXmZ",
         "tx_proof": x_payment_tx,
     }

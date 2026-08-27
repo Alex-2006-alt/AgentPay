@@ -99,6 +99,7 @@ class Service(Base):
     endpoint = Column(String(256), nullable=False)
     price = Column(Float, nullable=False)
     currency = Column(String(16), default="USDC")
+    wallet_address = Column(String(64), nullable=True)
     rating = Column(Float, default=4.8)
     success_rate = Column(Float, default=99.0)
     average_response_time = Column(Float, default=100.0)  # ms

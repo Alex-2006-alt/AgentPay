@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.agent.planner import TaskPlanner
 from app.agent.tools import AgentTools
 from app.schemas.agent_task import AgentTaskResponse, ExecutionStep
+from app.blockchain.client import BlockchainClient
 
 
 class AgentExecutor:
@@ -15,6 +16,7 @@ class AgentExecutor:
         self.db = db
         self.planner = TaskPlanner()
         self.tools = AgentTools()
+        self.blockchain = BlockchainClient()
 
     async def execute(self, task_id: str, task: str, agent_id: str) -> AgentTaskResponse:
         steps = []
@@ -153,14 +155,45 @@ class AgentExecutor:
         # 4. Payment Settlement
         executed_tx_hashes = []
         for srv in services:
-            mock_tx_hash = f"0x{secrets.token_hex(32)}"
-            tx = await self.tools.record_transaction(
-                self.db, agent.id, srv.id, srv.price, "completed", None, mock_tx_hash
-            )
-            await self.tools.process_payment(self.db, tx, wallet, agent, srv.price)
-            
-            transactions.append(tx.id)
-            executed_tx_hashes.append(mock_tx_hash)
+            try:
+                # Actual Blockchain EVM execution
+                tx_hash = self.blockchain.execute_payment(srv.wallet_address, srv.price)
+                
+                # Record successful tx
+                tx = await self.tools.record_transaction(
+                    self.db, agent.id, srv.id, srv.price, "completed", None, tx_hash
+                )
+                await self.tools.process_payment(self.db, tx, wallet, agent, srv.price)
+                transactions.append(tx.id)
+                executed_tx_hashes.append(tx_hash)
+            except ValueError as e:
+                # Blockchain transaction reverted or failed
+                revert_reason = str(e)
+                tx = await self.tools.record_transaction(
+                    self.db, agent.id, srv.id, srv.price, "failed", revert_reason
+                )
+                transactions.append(tx.id)
+                
+                steps.append(
+                    ExecutionStep(
+                        step_number=4,
+                        title="Blockchain Micropayment Settlement",
+                        description=f"❌ FAILED on EVM: {revert_reason}",
+                        status="failed",
+                        cost=srv.price,
+                    )
+                )
+                await self.db.commit()
+                return AgentTaskResponse(
+                    task_id=task_id,
+                    task=task,
+                    status="blockchain_reverted",
+                    steps=steps,
+                    final_output=None,
+                    total_cost=0.0,
+                    transactions=transactions,
+                    error=revert_reason,
+                )
 
         await self.db.commit()
 

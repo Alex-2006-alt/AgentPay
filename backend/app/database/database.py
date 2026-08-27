@@ -77,6 +77,7 @@ async def init_db() -> None:
                         endpoint="/api/demo/weather",
                         price=0.001,
                         currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
                         rating=4.8,
                         success_rate=99.8,
                         average_response_time=45.0,
@@ -91,6 +92,7 @@ async def init_db() -> None:
                         endpoint="/api/demo/translate",
                         price=0.005,
                         currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
                         rating=4.9,
                         success_rate=99.5,
                         average_response_time=120.0,
@@ -105,6 +107,7 @@ async def init_db() -> None:
                         endpoint="/api/demo/summarize",
                         price=0.010,
                         currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
                         rating=4.9,
                         success_rate=99.2,
                         average_response_time=210.0,
@@ -119,6 +122,7 @@ async def init_db() -> None:
                         endpoint="/api/demo/ocr",
                         price=0.002,
                         currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
                         rating=4.7,
                         success_rate=98.5,
                         average_response_time=350.0,
@@ -133,6 +137,7 @@ async def init_db() -> None:
                         endpoint="/api/demo/search",
                         price=0.003,
                         currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
                         rating=4.9,
                         success_rate=99.9,
                         average_response_time=80.0,
@@ -147,6 +152,7 @@ async def init_db() -> None:
                         endpoint="/api/demo/generate_image",
                         price=0.050,
                         currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
                         rating=4.8,
                         success_rate=97.0,
                         average_response_time=1500.0,
@@ -196,7 +202,19 @@ async def init_db() -> None:
                     approved_services="srv_weather_01,srv_translate_01,srv_summarize_01,srv_ocr_01,srv_search_01,srv_image_01",
                 )
                 session.add(policy)
-                
                 await session.commit()
+                
+                # Sync default agent policy with blockchain
+                from app.blockchain.client import BlockchainClient
+                try:
+                    bc = BlockchainClient()
+                    bc.register_agent_policy(
+                        agent.wallet_address,
+                        policy.max_transaction,
+                        ["0x70997970C51812dc3A010C7d01b50e0d17dc79C8"]
+                    )
+                except Exception as e:
+                    print(f"Warning: Could not sync policy to blockchain: {e}")
+                    
         except Exception:
             await session.rollback()

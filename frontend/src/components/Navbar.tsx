@@ -17,16 +17,16 @@ export const Navbar: React.FC = () => {
   });
 
   return (
-    <header className="h-16 border-b border-white/50 bg-white/60 backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm shadow-slate-200/50">
+    <header className="h-16 border-b border-white/40 bg-white/45 backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm shadow-slate-900/5">
       {/* Left: Active Agent Badge */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-white/50 shadow-sm text-xs">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 border border-white/50 shadow-sm text-xs">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-slate-500 font-medium">Agent:</span>
           <span className="font-bold text-slate-800">Primary Autonome</span>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100 text-xs text-indigo-700 font-medium shadow-sm">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-100/50 border border-indigo-200/40 text-xs text-indigo-700 font-medium shadow-sm">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Policy Guardrails Active</span>
         </div>
@@ -35,9 +35,9 @@ export const Navbar: React.FC = () => {
       {/* Right: Wallet Balance & Health */}
       <div className="flex items-center gap-4">
         {/* Live Balance Card */}
-        <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-lg bg-white/80 border border-white shadow-sm">
+        <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-lg bg-white/60 border border-white/50 shadow-sm">
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-            <Wallet className="w-3.5 h-3.5 text-indigo-500" />
+            <Wallet className="w-3.5 h-3.5 text-indigo-600" />
             <span>Balance:</span>
           </div>
           <span className="font-mono text-sm font-bold text-slate-900">
@@ -56,7 +56,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-2 text-xs">
           <Activity className={`w-3.5 h-3.5 ${health?.status === 'healthy' ? 'text-emerald-500' : 'text-amber-500'}`} />
           <span className="text-slate-500 hidden md:inline font-medium">API:</span>
-          <span className={`font-bold ${health?.status === 'healthy' ? 'text-emerald-600' : 'text-amber-600'}`}>
+          <span className={`font-bold ${health?.status === 'healthy' ? 'text-emerald-700' : 'text-amber-700'}`}>
             {health?.status || 'connecting...'}
           </span>
         </div>

@@ -8,7 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0B0F17',
+        background: '#C1D3E9',
+        'slate-minimal': {
+          DEFAULT: '#C1D3E9',
+          ice: '#DEEDF2',
+          blue: '#7EA9E6',
+          soft: '#C0D4EF',
+          charcoal: '#353A4B',
+        },
         surface: '#111827',
         'surface-subtle': '#1F2937',
         'surface-border': '#374151',

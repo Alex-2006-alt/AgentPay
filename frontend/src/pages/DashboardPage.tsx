@@ -64,10 +64,10 @@ export const DashboardPage: React.FC = () => {
       {/* Primary KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Wallet Balance */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 hover:bg-white/60 hover:border-white/60 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Agent Balance</span>
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100/50 text-indigo-700 flex items-center justify-center border border-indigo-200/40 shadow-sm">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -84,10 +84,10 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* 24h Spending */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 hover:bg-white/60 hover:border-white/60 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">24H Spending</span>
-            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-sky-100/50 text-sky-700 flex items-center justify-center border border-sky-200/40 shadow-sm">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
@@ -103,10 +103,10 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Total Settled Transactions */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 hover:bg-white/60 hover:border-white/60 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Settlements</span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100/50 text-emerald-700 flex items-center justify-center border border-emerald-200/40 shadow-sm">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
@@ -114,17 +114,17 @@ export const DashboardPage: React.FC = () => {
             <div className="text-3xl font-bold text-slate-900 font-mono tracking-tight">
               {analytics?.successful_transactions || 0}
             </div>
-            <div className="flex items-center gap-1 text-xs text-emerald-600 mt-2 font-bold">
+            <div className="flex items-center gap-1 text-xs text-emerald-700 mt-2 font-bold">
               <span>100% testnet verified</span>
             </div>
           </div>
         </div>
 
         {/* Security & Policy Blocks */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 hover:bg-white/60 hover:border-white/60 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Policy Blocks</span>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-amber-100/50 text-amber-700 flex items-center justify-center border border-amber-200/40 shadow-sm">
               <ShieldCheck className="w-5 h-5" />
             </div>
           </div>
@@ -133,7 +133,7 @@ export const DashboardPage: React.FC = () => {
               {analytics?.failed_transactions || 0}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-2 font-medium">
-              <span className="text-amber-600 font-bold">Defended actions</span>
+              <span className="text-amber-700 font-bold">Defended actions</span>
             </div>
           </div>
         </div>
@@ -142,15 +142,15 @@ export const DashboardPage: React.FC = () => {
       {/* Middle Section: Recent Transactions & Active Services */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Transactions List */}
-        <div className="lg:col-span-2 bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-8">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/60">
+        <div className="lg:col-span-2 bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-8">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-300/40">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Recent Payment Settlements</h2>
               <p className="text-sm text-slate-500 mt-1">Live micropayments executed by autonomous agents</p>
             </div>
             <Link
               to="/transactions"
-              className="text-sm text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+              className="text-sm text-indigo-700 hover:text-indigo-900 font-bold flex items-center gap-1 bg-indigo-100/50 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200/40"
             >
               <span>View all</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -158,8 +158,8 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {recentTransactions.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
-              <Layers className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <div className="text-center py-12 border border-dashed border-slate-300/60 rounded-xl bg-white/25">
+              <Layers className="w-10 h-10 text-slate-400 mx-auto mb-3" />
               <p className="text-sm text-slate-500 font-medium">No transactions recorded yet.</p>
               <Link to="/agent" className="text-sm font-bold text-indigo-600 mt-2 inline-block hover:underline">
                 Execute a task in the Agent Console →
@@ -170,16 +170,16 @@ export const DashboardPage: React.FC = () => {
               {recentTransactions.map((tx) => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-white/80 border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200 group"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/55 border border-slate-300/40 hover:bg-white/75 hover:border-slate-300/70 hover:shadow-sm transition-all duration-200 group"
                 >
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${
                         tx.status === 'completed'
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                          ? 'bg-emerald-100/50 text-emerald-700 border-emerald-200/50'
                           : tx.status === 'rejected'
-                          ? 'bg-rose-50 text-rose-600 border-rose-100'
-                          : 'bg-amber-50 text-amber-600 border-amber-100'
+                          ? 'bg-rose-100/50 text-rose-700 border-rose-200/50'
+                          : 'bg-amber-100/50 text-amber-700 border-amber-200/50'
                       }`}
                     >
                       {tx.status === 'completed' ? (
@@ -195,7 +195,7 @@ export const DashboardPage: React.FC = () => {
                         {tx.service_name || tx.service_id}
                       </div>
                       <div className="text-[12px] text-slate-500 font-mono mt-0.5">
-                        {tx.tx_hash ? <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{tx.tx_hash.slice(0, 10)}...{tx.tx_hash.slice(-8)}</span> : 'Internal Policy Evaluation'}
+                        {tx.tx_hash ? <span className="bg-white/60 px-1.5 py-0.5 rounded border border-slate-300/50">{tx.tx_hash.slice(0, 10)}...{tx.tx_hash.slice(-8)}</span> : 'Internal Policy Evaluation'}
                       </div>
                     </div>
                   </div>
@@ -207,10 +207,10 @@ export const DashboardPage: React.FC = () => {
                     <div
                       className={`text-[11px] font-bold uppercase tracking-wider mt-1 ${
                         tx.status === 'completed'
-                          ? 'text-emerald-600'
+                          ? 'text-emerald-700'
                           : tx.status === 'rejected'
-                          ? 'text-rose-600'
-                          : 'text-amber-600'
+                          ? 'text-rose-700'
+                          : 'text-amber-700'
                       }`}
                     >
                       {tx.status}
@@ -223,15 +223,15 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Marketplace Active Services */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-8 flex flex-col">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/60">
+        <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-8 flex flex-col">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-300/40">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Microservice Registry</h2>
               <p className="text-sm text-slate-500 mt-1">Discoverable paid endpoints</p>
             </div>
             <Link
               to="/marketplace"
-              className="text-sm text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+              className="text-sm text-indigo-700 hover:text-indigo-900 font-bold flex items-center gap-1 bg-indigo-100/50 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200/40"
             >
               <span>Explore</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -242,19 +242,19 @@ export const DashboardPage: React.FC = () => {
             {services?.map((service) => (
               <div
                 key={service.id}
-                className="p-4 rounded-xl bg-white/80 border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200"
+                className="p-4 rounded-xl bg-white/55 border border-slate-300/40 hover:bg-white/75 hover:border-slate-300/70 hover:shadow-sm transition-all duration-200"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-bold text-slate-900">{service.name}</span>
-                  <span className="text-sm font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                  <span className="text-sm font-mono font-bold text-indigo-700 bg-indigo-100/50 px-2 py-0.5 rounded-md border border-indigo-200/40">
                     ${service.price.toFixed(3)}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">{service.description}</p>
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-3 border-t border-slate-100">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-3 border-t border-slate-200/50">
                   <span className="flex items-center gap-1">⭐ {service.rating.toFixed(1)}</span>
                   <span className="flex items-center gap-1">⚡ {service.average_response_time}ms</span>
-                  <span className="text-emerald-600 flex items-center gap-1">
+                  <span className="text-emerald-700 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {service.status}
                   </span>
                 </div>

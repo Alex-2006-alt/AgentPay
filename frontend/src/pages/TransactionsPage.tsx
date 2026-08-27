@@ -35,7 +35,7 @@ export const TransactionsPage: React.FC = () => {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md border border-white shadow-sm p-1.5 rounded-xl self-start">
+        <div className="flex items-center gap-2 bg-white/45 backdrop-blur-md border border-white/40 shadow-sm p-1.5 rounded-xl self-start">
           <Filter className="w-4 h-4 text-slate-400 ml-2" />
           {['all', 'completed', 'rejected', 'pending'].map((st) => (
             <button
@@ -43,8 +43,8 @@ export const TransactionsPage: React.FC = () => {
               onClick={() => setStatusFilter(st)}
               className={`px-4 py-1.5 text-xs font-bold rounded-lg capitalize transition-all duration-200 ${
                 statusFilter === st
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent'
+                  ? 'bg-indigo-100/60 text-indigo-700 shadow-sm border border-indigo-200/50'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/40 border border-transparent'
               }`}
             >
               {st}
@@ -54,17 +54,17 @@ export const TransactionsPage: React.FC = () => {
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50 transition-all">
+      <div className="bg-white/45 backdrop-blur-xl border border-white/40 rounded-2xl overflow-hidden shadow-sm shadow-slate-900/5 transition-all">
         {isLoading ? (
-          <div className="text-center py-16 text-slate-400 font-medium animate-pulse">Loading ledger...</div>
+          <div className="text-center py-16 text-slate-500 font-medium animate-pulse">Loading ledger...</div>
         ) : !transactions || transactions.length === 0 ? (
-          <div className="text-center py-16 text-slate-500 bg-slate-50/50">
+          <div className="text-center py-16 text-slate-500 bg-white/20">
             No transactions found for the selected filter.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200">
+              <thead className="bg-white/40 text-[11px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-300/40">
                 <tr>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Service</th>
@@ -73,21 +73,21 @@ export const TransactionsPage: React.FC = () => {
                   <th className="px-6 py-4">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-sans bg-white/40">
+              <tbody className="divide-y divide-slate-200/40 font-sans bg-white/30">
                 {transactions.map((tx) => (
                   <tr
                     key={tx.id}
-                    className="hover:bg-indigo-50/50 transition-colors"
+                    className="hover:bg-white/50 transition-colors"
                   >
                     {/* Status */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
                           tx.status === 'completed'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            ? 'bg-emerald-100/60 text-emerald-800 border border-emerald-200/50'
                             : tx.status === 'rejected'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            ? 'bg-rose-100/60 text-rose-800 border border-rose-200/50'
+                            : 'bg-amber-100/60 text-amber-800 border border-amber-200/50'
                         }`}
                       >
                         {tx.status === 'completed' ? (
@@ -107,7 +107,7 @@ export const TransactionsPage: React.FC = () => {
                         {tx.service_name || tx.service_id}
                       </div>
                       {tx.rejection_reason && (
-                        <div className="text-xs font-medium text-rose-500 max-w-xs truncate mt-0.5" title={tx.rejection_reason}>
+                        <div className="text-xs font-medium text-rose-600 max-w-xs truncate mt-0.5" title={tx.rejection_reason}>
                           {tx.rejection_reason}
                         </div>
                       )}
@@ -126,7 +126,7 @@ export const TransactionsPage: React.FC = () => {
                           href={`https://sepolia.arbiscan.io/tx/${tx.tx_hash}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="font-mono text-[12px] font-medium text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 w-fit shadow-inner transition-colors"
+                          className="font-mono text-[12px] font-medium text-indigo-700 hover:text-indigo-900 hover:underline flex items-center gap-1.5 bg-white/60 px-2 py-1 rounded-lg border border-slate-300/50 w-fit shadow-inner transition-colors"
                         >
                           <span>
                             {tx.tx_hash.slice(0, 8)}...{tx.tx_hash.slice(-6)}
@@ -134,12 +134,12 @@ export const TransactionsPage: React.FC = () => {
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
-                        <span className="text-xs font-medium text-slate-400 italic">Internal Policy Verdict</span>
+                        <span className="text-xs font-medium text-slate-500 italic">Internal Policy Verdict</span>
                       )}
                     </td>
 
                     {/* Timestamp */}
-                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-600">
                       {new Date(tx.created_at).toLocaleString()}
                     </td>
                   </tr>

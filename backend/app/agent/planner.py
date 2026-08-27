@@ -8,21 +8,21 @@ class TaskPlanner:
         In a real production app, this would wrap an LLM (e.g. LangChain + OpenAI/Gemini).
         For this demo, we use deterministic intent mapping simulating an LLM's tool selection.
         """
-        # Map of keywords to service categories or specific service IDs
+        # Map of keywords to service categories
         self.intent_map = {
-            r"translate|hindi|spanish|french": ["srv_translate_01"],
-            r"summariz|summary": ["srv_summarize_01"],
-            r"weather": ["srv_weather_01"],
-            r"ocr|extract text|read image": ["srv_ocr_01"],
-            r"search|find out|look up": ["srv_search_01"],
-            r"generate image|draw|picture of": ["srv_image_01"],
+            r"translate|hindi|spanish|french": ["Language"],
+            r"summariz|summary": ["Analysis"],
+            r"weather": ["Information"],
+            r"ocr|extract text|read image": ["Vision"],
+            r"search|find out|look up": ["Search"],
+            r"generate image|draw|picture of": ["Creative"],
         }
         
     def analyze_task(self, task: str) -> Tuple[List[str], bool, float]:
         """
-        Analyzes the task and determines the required services and if it's a simulated attack.
+        Analyzes the task and determines the required service categories.
         Returns:
-            needed_service_ids (List[str]): The IDs of services needed to complete the task.
+            needed_categories (List[str]): The categories of services needed to complete the task.
             is_attack (bool): True if this task appears to be malicious or out-of-bounds.
             attack_amount (float): The amount requested in the malicious task.
         """
@@ -38,15 +38,15 @@ class TaskPlanner:
             return [], is_attack, attack_amount
             
         # 2. Extract intents using regex patterns
-        needed_service_ids = []
-        for pattern, service_ids in self.intent_map.items():
+        needed_categories = []
+        for pattern, categories in self.intent_map.items():
             if re.search(pattern, task_lower):
-                for srv_id in service_ids:
-                    if srv_id not in needed_service_ids:
-                        needed_service_ids.append(srv_id)
+                for cat in categories:
+                    if cat not in needed_categories:
+                        needed_categories.append(cat)
                         
         # 3. Default fallback if no clear intent is found (to ensure demo flows work)
-        if not needed_service_ids:
-            needed_service_ids = ["srv_translate_01", "srv_summarize_01"]
+        if not needed_categories:
+            needed_categories = ["Language", "Analysis"]
             
-        return needed_service_ids, is_attack, attack_amount
+        return needed_categories, is_attack, attack_amount

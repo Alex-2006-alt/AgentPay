@@ -63,11 +63,29 @@ async def init_db() -> None:
                     is_verified=True,
                     reputation=4.95,
                 )
-                session.add(provider)
+                
+                provider2 = Provider(
+                    id="provider_deeplingo",
+                    name="DeepLingo AI",
+                    website="https://deeplingo.ai",
+                    is_verified=True,
+                    reputation=4.7,
+                )
+                
+                provider3 = Provider(
+                    id="provider_fastapi",
+                    name="FastAPI Microservices",
+                    website="https://fastapi.services",
+                    is_verified=False,
+                    reputation=3.9,
+                )
+                
+                session.add_all([provider, provider2, provider3])
                 await session.flush()
 
                 # 2. Create Default Services
                 services = [
+                    # Category: Information
                     Service(
                         id="srv_weather_01",
                         provider_id=provider.id,
@@ -84,6 +102,22 @@ async def init_db() -> None:
                         status="active",
                     ),
                     Service(
+                        id="srv_weather_02",
+                        provider_id=provider3.id,
+                        name="FastWeather Info",
+                        description="Basic weather lookups for cheap",
+                        category="Information",
+                        endpoint="/api/demo/weather_basic",
+                        price=0.0005,
+                        currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                        rating=3.5,
+                        success_rate=92.0,
+                        average_response_time=120.0,
+                        status="active",
+                    ),
+                    # Category: Language
+                    Service(
                         id="srv_translate_01",
                         provider_id=provider.id,
                         name="Neural Polyglot Translation",
@@ -98,6 +132,37 @@ async def init_db() -> None:
                         average_response_time=120.0,
                         status="active",
                     ),
+                    Service(
+                        id="srv_translate_02",
+                        provider_id=provider2.id,
+                        name="DeepLingo Advanced Translate",
+                        description="High accuracy domain-specific translation",
+                        category="Language",
+                        endpoint="/api/demo/translate_advanced",
+                        price=0.008,
+                        currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                        rating=5.0,
+                        success_rate=99.9,
+                        average_response_time=80.0,
+                        status="active",
+                    ),
+                    Service(
+                        id="srv_translate_03",
+                        provider_id=provider3.id,
+                        name="Budget Translate",
+                        description="Basic word-for-word translation",
+                        category="Language",
+                        endpoint="/api/demo/translate_basic",
+                        price=0.002,
+                        currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                        rating=3.8,
+                        success_rate=95.0,
+                        average_response_time=300.0,
+                        status="active",
+                    ),
+                    # Category: Analysis
                     Service(
                         id="srv_summarize_01",
                         provider_id=provider.id,
@@ -114,6 +179,22 @@ async def init_db() -> None:
                         status="active",
                     ),
                     Service(
+                        id="srv_summarize_02",
+                        provider_id=provider2.id,
+                        name="DeepLingo Summarizer",
+                        description="Fast extractive summarization",
+                        category="Analysis",
+                        endpoint="/api/demo/summarize_ext",
+                        price=0.006,
+                        currency="USDC",
+                        wallet_address="0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                        rating=4.5,
+                        success_rate=98.0,
+                        average_response_time=180.0,
+                        status="active",
+                    ),
+                    # Category: Vision
+                    Service(
                         id="srv_ocr_01",
                         provider_id=provider.id,
                         name="VisionText OCR Extraction",
@@ -128,12 +209,13 @@ async def init_db() -> None:
                         average_response_time=350.0,
                         status="active",
                     ),
+                    # Category: Search
                     Service(
                         id="srv_search_01",
                         provider_id=provider.id,
                         name="Quantum Web Search",
                         description="Real-time internet indexing and semantic search",
-                        category="Information",
+                        category="Search",
                         endpoint="/api/demo/search",
                         price=0.003,
                         currency="USDC",
@@ -143,12 +225,13 @@ async def init_db() -> None:
                         average_response_time=80.0,
                         status="active",
                     ),
+                    # Category: Creative
                     Service(
                         id="srv_image_01",
                         provider_id=provider.id,
                         name="Diffusion Art Generation",
                         description="AI-powered high-resolution image synthesis",
-                        category="Vision",
+                        category="Creative",
                         endpoint="/api/demo/generate_image",
                         price=0.050,
                         currency="USDC",
@@ -199,7 +282,7 @@ async def init_db() -> None:
                     daily_limit=settings.DEFAULT_DAILY_LIMIT,
                     monthly_limit=settings.DEFAULT_MONTHLY_LIMIT,
                     auto_payment=settings.AUTO_PAYMENT_ENABLED,
-                    approved_services="srv_weather_01,srv_translate_01,srv_summarize_01,srv_ocr_01,srv_search_01,srv_image_01",
+                    approved_services="srv_weather_01,srv_weather_02,srv_translate_01,srv_translate_02,srv_translate_03,srv_summarize_01,srv_summarize_02,srv_ocr_01,srv_search_01,srv_image_01",
                 )
                 session.add(policy)
                 await session.commit()

@@ -17,16 +17,16 @@ export const Navbar: React.FC = () => {
   });
 
   return (
-    <header className="h-16 border-b border-slate-800/80 bg-[#111827]/60 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-30">
+    <header className="h-16 border-b border-white/50 bg-white/60 backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm shadow-slate-200/50">
       {/* Left: Active Agent Badge */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-slate-400">Agent:</span>
-          <span className="font-semibold text-slate-200">Primary Autonome</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-white/50 shadow-sm text-xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-slate-500 font-medium">Agent:</span>
+          <span className="font-bold text-slate-800">Primary Autonome</span>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-400">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100 text-xs text-indigo-700 font-medium shadow-sm">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Policy Guardrails Active</span>
         </div>
@@ -35,18 +35,18 @@ export const Navbar: React.FC = () => {
       {/* Right: Wallet Balance & Health */}
       <div className="flex items-center gap-4">
         {/* Live Balance Card */}
-        <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Wallet className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-lg bg-white/80 border border-white shadow-sm">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+            <Wallet className="w-3.5 h-3.5 text-indigo-500" />
             <span>Balance:</span>
           </div>
-          <span className="font-mono text-sm font-bold text-emerald-400">
-            ${wallet?.balance !== undefined ? wallet.balance.toFixed(3) : '10.000'} {wallet?.currency || 'USDC'}
+          <span className="font-mono text-sm font-bold text-slate-900">
+            ${wallet?.balance !== undefined ? wallet.balance.toFixed(3) : '10.000'} <span className="text-slate-500 text-xs">{wallet?.currency || 'USDC'}</span>
           </span>
           <button
             onClick={() => refetchWallet()}
             title="Refresh balance"
-            className="text-slate-400 hover:text-slate-200 p-0.5"
+            className="text-slate-400 hover:text-indigo-600 p-0.5 transition-colors"
           >
             <RefreshCw className="w-3 h-3 hover:rotate-180 transition-transform duration-500" />
           </button>
@@ -54,9 +54,9 @@ export const Navbar: React.FC = () => {
 
         {/* Backend API status */}
         <div className="flex items-center gap-2 text-xs">
-          <Activity className={`w-3.5 h-3.5 ${health?.status === 'healthy' ? 'text-emerald-400' : 'text-amber-400'}`} />
-          <span className="text-slate-400 hidden md:inline">API:</span>
-          <span className={`font-medium ${health?.status === 'healthy' ? 'text-emerald-400' : 'text-amber-400'}`}>
+          <Activity className={`w-3.5 h-3.5 ${health?.status === 'healthy' ? 'text-emerald-500' : 'text-amber-500'}`} />
+          <span className="text-slate-500 hidden md:inline font-medium">API:</span>
+          <span className={`font-bold ${health?.status === 'healthy' ? 'text-emerald-600' : 'text-amber-600'}`}>
             {health?.status || 'connecting...'}
           </span>
         </div>

@@ -21,30 +21,30 @@ export const TransactionsPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <ArrowLeftRight className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
+            <ArrowLeftRight className="w-6 h-6 text-indigo-600" />
             <span>Transaction Ledger</span>
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
             Complete audit trail of autonomous AI payments, policy verdicts, and blockchain settlement receipts.
           </p>
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 p-1 rounded-xl self-start">
-          <Filter className="w-3.5 h-3.5 text-slate-400 ml-2" />
+        <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md border border-white shadow-sm p-1.5 rounded-xl self-start">
+          <Filter className="w-4 h-4 text-slate-400 ml-2" />
           {['all', 'completed', 'rejected', 'pending'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1 text-xs font-medium rounded-lg capitalize transition-colors ${
+              className={`px-4 py-1.5 text-xs font-bold rounded-lg capitalize transition-all duration-200 ${
                 statusFilter === st
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent'
               }`}
             >
               {st}
@@ -54,17 +54,17 @@ export const TransactionsPage: React.FC = () => {
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-[#111827] border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50 transition-all">
         {isLoading ? (
-          <div className="text-center py-16 text-slate-400">Loading ledger...</div>
+          <div className="text-center py-16 text-slate-400 font-medium animate-pulse">Loading ledger...</div>
         ) : !transactions || transactions.length === 0 ? (
-          <div className="text-center py-16 text-slate-400">
+          <div className="text-center py-16 text-slate-500 bg-slate-50/50">
             No transactions found for the selected filter.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-900/80 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200">
                 <tr>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Service</th>
@@ -73,29 +73,29 @@ export const TransactionsPage: React.FC = () => {
                   <th className="px-6 py-4">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-sans">
+              <tbody className="divide-y divide-slate-100 font-sans bg-white/40">
                 {transactions.map((tx) => (
                   <tr
                     key={tx.id}
-                    className="hover:bg-slate-900/40 transition-colors"
+                    className="hover:bg-indigo-50/50 transition-colors"
                   >
                     {/* Status */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
                           tx.status === 'completed'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : tx.status === 'rejected'
-                            ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
                         {tx.status === 'completed' ? (
-                          <CheckCircle2 className="w-3 h-3" />
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                         ) : tx.status === 'rejected' ? (
-                          <XCircle className="w-3 h-3" />
+                          <XCircle className="w-3.5 h-3.5" />
                         ) : (
-                          <Clock className="w-3 h-3" />
+                          <Clock className="w-3.5 h-3.5" />
                         )}
                         <span className="capitalize">{tx.status}</span>
                       </span>
@@ -103,20 +103,20 @@ export const TransactionsPage: React.FC = () => {
 
                     {/* Service */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-slate-200">
+                      <div className="font-bold text-slate-900">
                         {tx.service_name || tx.service_id}
                       </div>
                       {tx.rejection_reason && (
-                        <div className="text-xs text-red-400 max-w-xs truncate" title={tx.rejection_reason}>
+                        <div className="text-xs font-medium text-rose-500 max-w-xs truncate mt-0.5" title={tx.rejection_reason}>
                           {tx.rejection_reason}
                         </div>
                       )}
                     </td>
 
                     {/* Amount */}
-                    <td className="px-6 py-4 whitespace-nowrap font-mono font-semibold text-white">
+                    <td className="px-6 py-4 whitespace-nowrap font-mono font-bold text-slate-900">
                       ${tx.amount.toFixed(4)}{' '}
-                      <span className="text-xs text-slate-400 font-sans">{tx.currency}</span>
+                      <span className="text-xs text-slate-500 font-sans font-medium">{tx.currency}</span>
                     </td>
 
                     {/* Tx Hash */}
@@ -126,7 +126,7 @@ export const TransactionsPage: React.FC = () => {
                           href={`https://sepolia.arbiscan.io/tx/${tx.tx_hash}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="font-mono text-xs text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1"
+                          className="font-mono text-[12px] font-medium text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 w-fit shadow-inner transition-colors"
                         >
                           <span>
                             {tx.tx_hash.slice(0, 8)}...{tx.tx_hash.slice(-6)}
@@ -134,12 +134,12 @@ export const TransactionsPage: React.FC = () => {
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
-                        <span className="text-xs text-slate-400">Internal Policy Verdict</span>
+                        <span className="text-xs font-medium text-slate-400 italic">Internal Policy Verdict</span>
                       )}
                     </td>
 
                     {/* Timestamp */}
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-500">
                       {new Date(tx.created_at).toLocaleString()}
                     </td>
                   </tr>

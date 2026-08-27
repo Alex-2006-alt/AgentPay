@@ -23,7 +23,7 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <div className="flex min-h-screen bg-[#0B0F17] text-slate-100 font-sans">
+        <div className="flex min-h-screen bg-transparent text-slate-900 font-sans">
           {/* Main Sidebar */}
           <Sidebar />
 

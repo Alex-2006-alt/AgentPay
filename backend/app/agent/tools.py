@@ -30,12 +30,47 @@ class AgentTools:
         return agent, policy, wallet
 
     @staticmethod
-    async def discover_services(db: AsyncSession, service_ids: List[str]) -> List[Service]:
-        """Looks up the provided service IDs in the marketplace."""
-        if not service_ids:
-            return []
-        res_services = await db.execute(select(Service).where(Service.id.in_(service_ids)))
-        return res_services.scalars().all()
+    async def discover_best_services_by_category(db: AsyncSession, categories: List[str]) -> Tuple[List[Service], List[dict]]:
+        """Looks up all services for the required categories and selects the best one per category."""
+        if not categories:
+            return [], []
+            
+        best_services = []
+        comparison_logs = []
+        
+        for category in categories:
+            res = await db.execute(select(Service).where(Service.category == category, Service.status == "active"))
+            services_in_cat = res.scalars().all()
+            
+            if not services_in_cat:
+                continue
+                
+            # Score each service: simple heuristic (Rating / Price)
+            # The higher the rating and the lower the price, the better the score.
+            scored_services = []
+            for s in services_in_cat:
+                # Avoid division by zero
+                price = s.price if s.price > 0 else 0.0001
+                score = (s.rating / 5.0) / price
+                scored_services.append((s, score))
+                
+            # Sort by score descending
+            scored_services.sort(key=lambda x: x[1], reverse=True)
+            
+            best_service = scored_services[0][0]
+            best_services.append(best_service)
+            
+            # Create a log entry for the UI
+            comparison_logs.append({
+                "category": category,
+                "candidates": len(services_in_cat),
+                "selected_name": best_service.name,
+                "selected_price": best_service.price,
+                "selected_rating": best_service.rating,
+                "all_scores": [{"name": s.name, "score": round(score, 2), "price": s.price, "rating": s.rating} for s, score in scored_services]
+            })
+            
+        return best_services, comparison_logs
 
     @staticmethod
     async def record_transaction(

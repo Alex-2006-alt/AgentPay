@@ -31,7 +31,7 @@ class AgentExecutor:
         approved_services = [s.strip() for s in approved_services if s.strip()]
 
         # 1. Planning Phase
-        needed_service_ids, is_attack, attack_amount = self.planner.analyze_task(task)
+        needed_categories, is_attack, attack_amount = self.planner.analyze_task(task)
         
         steps.append(
             ExecutionStep(
@@ -84,16 +84,23 @@ class AgentExecutor:
                 error=reason,
             )
 
-        # 2. Service Discovery
-        services = await self.tools.discover_services(self.db, needed_service_ids)
+        # 2. Service Discovery (Dynamic Provider Selection)
+        services, comparison_logs = await self.tools.discover_best_services_by_category(self.db, needed_categories)
         total_cost = sum(s.price for s in services)
-        service_names = ", ".join([f"{s.name} (${s.price:.3f})" for s in services])
+        
+        # Build a description of the selection process
+        selection_details = []
+        for log in comparison_logs:
+            selection_details.append(f"[{log['category']}] Compared {log['candidates']} providers. Selected '{log['selected_name']}' at ${log['selected_price']:.4f} (Rating: {log['selected_rating']}).")
+        
+        service_names = ", ".join([f"{s.name} (${s.price:.4f})" for s in services])
+        desc = f"Discovered optimal services dynamically: {service_names}. Total estimated cost: ${total_cost:.4f} USDC.\n\n" + "\n".join(selection_details)
 
         steps.append(
             ExecutionStep(
                 step_number=2,
-                title="Service Discovery & Cost Estimation",
-                description=f"Discovered matching services in marketplace: {service_names}. Total estimated cost: ${total_cost:.3f} USDC.",
+                title="Service Discovery & Dynamic Provider Selection",
+                description=desc,
                 status="completed",
                 cost=total_cost,
             )
@@ -146,7 +153,7 @@ class AgentExecutor:
             ExecutionStep(
                 step_number=3,
                 title="Deterministic Policy Engine Check",
-                description=f"✓ APPROVED: Cost ${total_cost:.3f} is within max transaction limit (${max_tx:.2f}) and daily cap (${daily_limit:.2f}).",
+                description=f"✓ APPROVED: Cost ${total_cost:.4f} is within max transaction limit (${max_tx:.2f}) and daily cap (${daily_limit:.2f}).",
                 status="completed",
                 cost=total_cost,
             )
@@ -244,18 +251,21 @@ class AgentExecutor:
         """Generates a dummy final output based on the services used."""
         outputs = []
         for srv in services:
-            if srv.id == "srv_translate_01":
-                outputs.append("### 🌐 Translation (Hindi)\n**एजेंटपे (AgentPay) स्वायत्त एआई एजेंटों के लिए सुरक्षित माइक्रोपेमेंट और वित्तीय नियंत्रण अवसंरचना प्रदान करता है।**")
-            elif srv.id == "srv_summarize_01":
-                outputs.append("### 🧠 Summary & Key Takeaways\n- **Deterministic Guardrails**: Dual-layer policy engine prevents unauthorized spending.\n- **Micropayment Rails**: Autonomous per-call API settlement settled on EVM.")
-            elif srv.id == "srv_weather_01":
-                outputs.append("### 🌤 Weather\n**New York:** 22°C, Partly Cloudy, Humidity: 64%.")
-            elif srv.id == "srv_ocr_01":
-                outputs.append("### 📄 OCR Extraction\nExtracted Text: 'Invoice #4029 - Total Amount Due: $450.00 - Paid in Full'")
-            elif srv.id == "srv_search_01":
-                outputs.append("### 🔍 Search Results\nFound 3 relevant sources confirming the latest updates on EVM testnet deployment strategies.")
-            elif srv.id == "srv_image_01":
-                outputs.append("### 🎨 Generated Image\n[Image Successfully Generated and Uploaded to IPFS]")
+            if srv.category == "Language":
+                outputs.append(f"### 🌐 Translation (Hindi)\n*{srv.name} Result:*\n**एजेंटपे (AgentPay) स्वायत्त एआई एजेंटों के लिए सुरक्षित माइक्रोपेमेंट और वित्तीय नियंत्रण अवसंरचना प्रदान करता है।**")
+            elif srv.category == "Analysis":
+                outputs.append(f"### 🧠 Summary & Key Takeaways\n*{srv.name} Result:*\n- **Deterministic Guardrails**: Dual-layer policy engine prevents unauthorized spending.\n- **Micropayment Rails**: Autonomous per-call API settlement settled on EVM.")
+            elif srv.category == "Information" or srv.category == "Weather":
+                outputs.append(f"### 🌤 Weather\n*{srv.name} Result:*\n**New York:** 22°C, Partly Cloudy, Humidity: 64%.")
+            elif srv.category == "Vision":
+                if "OCR" in srv.name:
+                    outputs.append(f"### 📄 OCR Extraction\n*{srv.name} Result:*\nExtracted Text: 'Invoice #4029 - Total Amount Due: $450.00 - Paid in Full'")
+                else:
+                    outputs.append(f"### 🎨 Generated Image\n*{srv.name} Result:*\n[Image Successfully Generated and Uploaded to IPFS]")
+            elif srv.category == "Creative":
+                outputs.append(f"### 🎨 Generated Image\n*{srv.name} Result:*\n[Image Successfully Generated and Uploaded to IPFS]")
+            elif srv.category == "Search":
+                outputs.append(f"### 🔍 Search Results\n*{srv.name} Result:*\nFound 3 relevant sources confirming the latest updates on EVM testnet deployment strategies.")
                 
         if not outputs:
             return "Task completed successfully."

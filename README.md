@@ -109,7 +109,8 @@ AgentPay/
 - [x] **Phase 4**: Policy Engine & Guardrails
 - [x] **Phase 5**: Solidity Smart Contracts & EVM Testnet Integration
 - [x] **Phase 6**: AI + Blockchain Integration (Web3 Settlement)
-- [ ] **Phase 7**: Interactive Dashboard, Advanced Analytics & Security Visualizations
+- [x] **Phase 7**: Interactive Dashboard, Advanced Analytics & Security Visualizations
+- [x] **Phase 8**: Advanced Features (Provider Reputation & Dynamic Selection)
 
 ---
 

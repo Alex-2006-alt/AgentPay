@@ -22,10 +22,10 @@ const navigation = [
 
 export const Sidebar: React.FC = () => {
   return (
-    <aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-white/50 flex flex-col h-screen sticky top-0 shadow-[4px_0_24px_rgba(226,232,240,0.5)]">
+    <aside className="w-64 bg-white/45 backdrop-blur-xl border-r border-white/40 flex flex-col h-screen sticky top-0 shadow-sm shadow-slate-900/5">
       {/* Brand Header */}
-      <div className="p-6 border-b border-white/50 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+      <div className="p-6 border-b border-white/40 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center shadow-md shadow-indigo-500/20">
           <Cpu className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -50,8 +50,8 @@ export const Sidebar: React.FC = () => {
               className={({ isActive }) =>
                 `flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
                   isActive
-                    ? 'bg-white text-indigo-700 shadow-sm shadow-indigo-100/50 border border-white font-semibold'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/50 border border-transparent'
+                    ? 'bg-white/70 text-indigo-700 shadow-sm border border-white/60 font-semibold'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/40 border border-transparent'
                 }`
               }
             >
@@ -60,7 +60,7 @@ export const Sidebar: React.FC = () => {
                 <span>{item.name}</span>
               </div>
               {item.badge && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 rounded">
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100/70 text-indigo-700 border border-indigo-200/50 rounded">
                   {item.badge}
                 </span>
               )}
@@ -70,14 +70,14 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Bottom Network Status Card */}
-      <div className="p-4 border-t border-white/50">
-        <div className="bg-white/50 backdrop-blur-sm border border-white rounded-xl p-3 shadow-sm">
+      <div className="p-4 border-t border-white/40">
+        <div className="bg-white/45 backdrop-blur-sm border border-white/50 rounded-xl p-3 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-xs font-semibold text-slate-800">Arbitrum Sepolia</span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 bg-slate-200 text-slate-600 font-bold rounded">
+            <span className="text-[10px] px-1.5 py-0.5 bg-slate-200/80 text-slate-600 font-bold rounded">
               EVM L2
             </span>
           </div>
@@ -88,7 +88,7 @@ export const Sidebar: React.FC = () => {
             href="https://sepolia.arbiscan.io"
             target="_blank"
             rel="noreferrer"
-            className="mt-2.5 flex items-center justify-between text-[11px] text-indigo-600 hover:text-indigo-800 font-bold group"
+            className="mt-2.5 flex items-center justify-between text-[11px] text-indigo-700 hover:text-indigo-900 font-bold group"
           >
             <span>Block Explorer</span>
             <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />

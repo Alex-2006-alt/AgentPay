@@ -75,22 +75,22 @@ export const PoliciesPage: React.FC = () => {
       </div>
 
       {/* Guardrail Philosophy Alert */}
-      <div className="p-5 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-start gap-4 shadow-sm">
-        <Lock className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-        <div className="text-xs text-indigo-800 leading-relaxed font-medium">
+      <div className="p-5 rounded-2xl bg-indigo-100/40 border border-indigo-200/50 flex items-start gap-4 shadow-sm">
+        <Lock className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+        <div className="text-xs text-indigo-900 leading-relaxed font-medium">
           <span className="font-bold">Non-Custodial LLM Security Rule:</span>
           {' '}The AI agent has zero direct control over your wallet private keys. All payment requests are intercepted by the deterministic policy engine below and rejected if any limit is breached.
         </div>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-16 text-slate-400 font-medium animate-pulse">Loading policy rules...</div>
+        <div className="text-center py-16 text-slate-500 font-medium animate-pulse">Loading policy rules...</div>
       ) : (
         <form onSubmit={handleSave} className="space-y-6">
           {/* Policy Card: Financial Spending Caps */}
-          <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 lg:p-8 space-y-6 transition-all">
-            <div className="flex items-center gap-2.5 pb-5 border-b border-slate-200/60">
-              <Sliders className="w-5 h-5 text-indigo-500" />
+          <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 lg:p-8 space-y-6 transition-all">
+            <div className="flex items-center gap-2.5 pb-5 border-b border-slate-300/40">
+              <Sliders className="w-5 h-5 text-indigo-600" />
               <h2 className="text-lg font-bold text-slate-900">Financial Ceilings (USDC)</h2>
             </div>
 
@@ -106,7 +106,7 @@ export const PoliciesPage: React.FC = () => {
                   min="0.001"
                   value={maxTx}
                   onChange={(e) => setMaxTx(parseFloat(e.target.value))}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition-all"
+                  className="w-full bg-white/70 border border-slate-300/50 rounded-xl px-4 py-3 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition-all"
                 />
                 <p className="text-xs text-slate-500 font-medium">Single transactions above this are blocked.</p>
               </div>
@@ -122,7 +122,7 @@ export const PoliciesPage: React.FC = () => {
                   min="0.10"
                   value={dailyLimit}
                   onChange={(e) => setDailyLimit(parseFloat(e.target.value))}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition-all"
+                  className="w-full bg-white/70 border border-slate-300/50 rounded-xl px-4 py-3 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition-all"
                 />
                 <p className="text-xs text-slate-500 font-medium">Rolling 24-hour spending limit.</p>
               </div>
@@ -138,14 +138,14 @@ export const PoliciesPage: React.FC = () => {
                   min="1.00"
                   value={monthlyLimit}
                   onChange={(e) => setMonthlyLimit(parseFloat(e.target.value))}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition-all"
+                  className="w-full bg-white/70 border border-slate-300/50 rounded-xl px-4 py-3 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition-all"
                 />
                 <p className="text-xs text-slate-500 font-medium">Aggregate monthly budget ceiling.</p>
               </div>
             </div>
 
             {/* Auto-Payment Toggle */}
-            <div className="pt-6 border-t border-slate-200/60 flex items-center justify-between">
+            <div className="pt-6 border-t border-slate-300/40 flex items-center justify-between">
               <div>
                 <div className="text-sm font-bold text-slate-900">Autonomous Payment Authorization</div>
                 <div className="text-xs text-slate-500 mt-1">
@@ -169,13 +169,13 @@ export const PoliciesPage: React.FC = () => {
           </div>
 
           {/* Approved Services Whitelist */}
-          <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 lg:p-8 space-y-5 transition-all">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200/60">
+          <div className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 lg:p-8 space-y-5 transition-all">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-300/40">
               <div className="flex items-center gap-2.5">
-                <Zap className="w-5 h-5 text-indigo-500" />
+                <Zap className="w-5 h-5 text-indigo-600" />
                 <h2 className="text-lg font-bold text-slate-900">Authorized Service Whitelist</h2>
               </div>
-              <span className="text-[11px] font-bold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm">
+              <span className="text-[11px] font-bold px-3 py-1 bg-emerald-100/60 text-emerald-800 border border-emerald-200/50 rounded-full shadow-sm">
                 3 Verified Services
               </span>
             </div>
@@ -184,7 +184,7 @@ export const PoliciesPage: React.FC = () => {
               {services?.map((srv) => (
                 <div
                   key={srv.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-white/80 border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/55 border border-slate-300/40 hover:bg-white/75 hover:border-slate-300/70 hover:shadow-sm transition-all duration-200"
                 >
                   <div className="flex items-center gap-4">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
@@ -193,7 +193,7 @@ export const PoliciesPage: React.FC = () => {
                       <div className="text-xs text-slate-500 font-mono mt-0.5">{srv.endpoint}</div>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                  <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-100/50 px-2.5 py-1 rounded-md border border-indigo-200/40">
                     ${srv.price.toFixed(3)} USDC
                   </span>
                 </div>

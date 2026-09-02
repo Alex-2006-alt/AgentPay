@@ -23,20 +23,20 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <div className="relative min-h-screen bg-slate-50/50 text-slate-900 font-sans selection:bg-indigo-500/20 selection:text-indigo-900">
-          {/* Ambient Liquid Glass Orbs (Refracted through frosted layers) */}
+        <div className="relative min-h-screen bg-[#C1D3E9] text-slate-900 font-sans selection:bg-[#7EA9E6]/30 selection:text-slate-900">
+          {/* Ambient Slate Minimal Orbs (Subtle, non-glaring ambient reflections) */}
           <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-            {/* Top Left Indigo Liquid Orb */}
-            <div className="absolute -top-32 -left-32 w-[550px] h-[550px] rounded-full bg-gradient-to-br from-indigo-200/40 via-sky-200/30 to-transparent blur-[90px] animate-blob-1" />
+            {/* Top Left Ice Slate Orb */}
+            <div className="absolute -top-32 -left-32 w-[550px] h-[550px] rounded-full bg-gradient-to-br from-[#DEEDF2]/30 via-[#C0D4EF]/20 to-transparent blur-[100px] animate-blob-1" />
             
-            {/* Top Right Violet Liquid Orb */}
-            <div className="absolute top-20 right-[-100px] w-[500px] h-[500px] rounded-full bg-gradient-to-bl from-purple-200/35 via-indigo-100/30 to-transparent blur-[100px] animate-blob-2" />
+            {/* Top Right Accent Slate Blue Orb */}
+            <div className="absolute top-20 right-[-100px] w-[520px] h-[520px] rounded-full bg-gradient-to-bl from-[#7EA9E6]/25 via-[#C0D4EF]/20 to-transparent blur-[110px] animate-blob-2" />
             
-            {/* Bottom Left Sky Liquid Orb */}
-            <div className="absolute bottom-[-80px] left-1/3 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-sky-200/35 via-teal-100/25 to-transparent blur-[110px] animate-blob-3" />
+            {/* Bottom Left Soft Slate Periwinkle Orb */}
+            <div className="absolute bottom-[-80px] left-1/3 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#DEEDF2]/30 via-[#7EA9E6]/15 to-transparent blur-[120px] animate-blob-3" />
             
-            {/* Subtle Noise / Specular Grid Overlay */}
-            <div className="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.035]" />
+            {/* Subtle Texture / Specular Grid Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(#353A4B_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.035]" />
           </div>
 
           <div className="flex min-h-screen">

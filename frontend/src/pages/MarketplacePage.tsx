@@ -36,7 +36,7 @@ export const MarketplacePage: React.FC = () => {
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md border border-white shadow-sm p-1.5 rounded-xl self-start">
+        <div className="flex items-center gap-2 bg-white/45 backdrop-blur-md border border-white/40 shadow-sm p-1.5 rounded-xl self-start">
           <Filter className="w-4 h-4 text-slate-400 ml-2" />
           {categories.map((cat) => (
             <button
@@ -44,8 +44,8 @@ export const MarketplacePage: React.FC = () => {
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-1.5 text-xs font-bold rounded-lg capitalize transition-all duration-200 ${
                 selectedCategory === cat
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent'
+                  ? 'bg-indigo-100/60 text-indigo-700 shadow-sm border border-indigo-200/50'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/40 border border-transparent'
               }`}
             >
               {cat}
@@ -56,21 +56,21 @@ export const MarketplacePage: React.FC = () => {
 
       {/* Service Cards Grid */}
       {isLoading ? (
-        <div className="text-center py-16 text-slate-400 font-medium animate-pulse">Loading marketplace registry...</div>
+        <div className="text-center py-16 text-slate-500 font-medium animate-pulse">Loading marketplace registry...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services?.map((service) => (
             <div
               key={service.id}
-              className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-300 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group"
+              className="bg-white/45 backdrop-blur-xl border border-white/40 shadow-sm shadow-slate-900/5 rounded-2xl p-6 flex flex-col justify-between hover:bg-white/65 hover:border-indigo-300/50 hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
             >
               <div>
                 {/* Top Badge & Category */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-white/60 text-slate-700 border border-slate-300/50">
                     {service.category}
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-amber-100/50 px-2 py-1 rounded-md border border-amber-200/40">
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                     <span>{service.rating.toFixed(1)}</span>
                   </div>
@@ -80,51 +80,51 @@ export const MarketplacePage: React.FC = () => {
                 <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
                   {service.name}
                 </h3>
-                <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
                   {service.description}
                 </p>
 
                 {/* Technical Specs */}
-                <div className="mt-5 pt-5 border-t border-slate-200/60 grid grid-cols-2 gap-4 text-xs">
+                <div className="mt-5 pt-5 border-t border-slate-300/40 grid grid-cols-2 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-400 font-medium">Response Time</span>
+                    <span className="text-slate-500 font-medium">Response Time</span>
                     <div className="font-mono font-bold text-slate-700 flex items-center gap-1.5 mt-1">
-                      <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                      <Clock className="w-3.5 h-3.5 text-indigo-500" />
                       <span>{service.average_response_time} ms</span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-slate-400 font-medium">Success Rate</span>
-                    <div className="font-mono font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-slate-500 font-medium">Success Rate</span>
+                    <div className="font-mono font-bold text-emerald-700 flex items-center gap-1.5 mt-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       <span>{service.success_rate}%</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 text-xs">
-                  <span className="text-slate-400 font-medium">Endpoint:</span>
-                  <div className="font-mono text-slate-600 bg-slate-50 px-3 py-2 rounded-lg mt-1.5 border border-slate-200 text-[11px] truncate shadow-inner">
+                  <span className="text-slate-500 font-medium">Endpoint:</span>
+                  <div className="font-mono text-slate-700 bg-white/50 px-3 py-2 rounded-lg mt-1.5 border border-slate-300/50 text-[11px] truncate shadow-inner">
                     {service.endpoint}
                   </div>
                 </div>
               </div>
 
               {/* Bottom Price & Call CTA */}
-              <div className="mt-6 pt-5 border-t border-slate-200/60 flex items-center justify-between">
+              <div className="mt-6 pt-5 border-t border-slate-300/40 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
                     Price Per Call
                   </span>
-                  <div className="text-lg font-bold font-mono text-indigo-600 mt-0.5">
+                  <div className="text-lg font-bold font-mono text-indigo-700 mt-0.5">
                     ${service.price.toFixed(3)}{' '}
-                    <span className="text-xs text-slate-400 font-sans font-medium">USDC</span>
+                    <span className="text-xs text-slate-500 font-sans font-medium">USDC</span>
                   </div>
                 </div>
 
-                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shadow-sm">
-                  <Zap className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>x402 Ready</span>
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-100/50 text-indigo-700 font-bold text-xs border border-indigo-200/40 group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-sm">
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Agent Ready</span>
                 </span>
               </div>
             </div>

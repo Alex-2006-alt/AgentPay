@@ -267,8 +267,8 @@ async def init_db() -> None:
                     id="wallet_agent_primary",
                     agent_id=agent.id,
                     address=agent.wallet_address,
-                    network="Arbitrum Sepolia",
-                    chain_id=421614,
+                    network="Hardhat Local",
+                    chain_id=1337,
                     balance=10.00,  # 10.00 Mock USDC testnet balance
                     currency="USDC",
                 )

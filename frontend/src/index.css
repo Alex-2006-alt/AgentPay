@@ -2,8 +2,8 @@
 
 @layer base {
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #C1D3E9;
+    color: #1e293b;
     font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -13,54 +13,49 @@
 
 /* Liquid Glass Design System Utilities */
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(24px) saturate(190%) contrast(102%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%) contrast(102%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   box-shadow: 
-    0 12px 36px -6px rgba(100, 116, 139, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-    0 1px 3px 0 rgba(255, 255, 255, 0.9) inset;
+    0 10px 30px -5px rgba(53, 58, 75, 0.06),
+    0 1px 2px 0 rgba(255, 255, 255, 0.5) inset;
 }
 
 .liquid-glass-subtle {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(16px) saturate(170%);
-  -webkit-backdrop-filter: blur(16px) saturate(170%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 
-    0 8px 24px -4px rgba(100, 116, 139, 0.05),
-    0 1px 2px 0 rgba(255, 255, 255, 0.8) inset;
+    0 4px 16px -2px rgba(53, 58, 75, 0.04);
 }
 
 .liquid-glass-interactive {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(24px) saturate(190%) contrast(102%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%) contrast(102%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   box-shadow: 
-    0 12px 36px -6px rgba(100, 116, 139, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-    0 1px 3px 0 rgba(255, 255, 255, 0.9) inset;
+    0 10px 30px -5px rgba(53, 58, 75, 0.06),
+    0 1px 2px 0 rgba(255, 255, 255, 0.5) inset;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .liquid-glass-interactive:hover {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.65);
   transform: translateY(-2px);
-  border-color: rgba(165, 180, 252, 0.6);
+  border-color: rgba(126, 169, 230, 0.5);
   box-shadow: 
-    0 22px 45px -8px rgba(99, 102, 241, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.9) inset,
-    0 2px 4px 0 rgba(255, 255, 255, 1) inset;
+    0 16px 36px -6px rgba(53, 58, 75, 0.1);
 }
 
 .liquid-pill {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px 0 rgba(100, 116, 139, 0.06), 0 1px 1px 0 rgba(255, 255, 255, 0.9) inset;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 2px 8px 0 rgba(53, 58, 75, 0.04);
 }
 
 /* Floating Liquid Ambient Spheres */

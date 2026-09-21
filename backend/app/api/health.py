@@ -17,9 +17,11 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(text("SELECT 1"))
     except Exception as e:
-        db_status = f"degraded ({str(e)})"
+        db_status = "degraded"
 
     return HealthResponse(
+        payment_mode=settings.PAYMENT_MODE,
+        chain_id=settings.CHAIN_ID,
         status="healthy" if db_status == "connected" else "degraded",
         version=settings.VERSION,
         environment=settings.ENVIRONMENT,

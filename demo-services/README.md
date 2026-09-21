@@ -1,10 +1,5 @@
-# 🔌 AgentPay Demo Paid Micro-Services
+# Demo providers
 
-This directory holds standalone mock and reference micro-services demonstrating the **x402 / HTTP 402 Payment Required** pattern.
+Demo providers are hosted inside the backend at `/api/demo/{provider}`. They return explicitly synthetic data and make no external AI, weather, search or image calls.
 
-## Demo Services
-1. **Weather API (`/api/weather`)**: $0.001 per call.
-2. **Translation API (`/api/translate`)**: $0.005 per call.
-3. **Summarization API (`/api/summarize`)**: $0.010 per call.
-
-Payment proofs are verified before serving service results.
+Every invocation requires a bearer credential and `X-Payment-Id` belonging to that user and endpoint. Exact retries return cached output; reusing a payment with different input is rejected. Provider aliases from the seeded registry are supported. See [API](../docs/api.md).

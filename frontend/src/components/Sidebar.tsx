@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query';
+import { agentPayApi } from '../services/api';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -8,12 +10,11 @@ import {
   ArrowLeftRight,
   ShieldCheck,
   Cpu,
-  ExternalLink,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Agent Console', href: '/agent', icon: Bot, badge: 'Live AI' },
+  { name: 'Agent Console', href: '/agent', icon: Bot, badge: 'Tasks' },
   { name: 'Marketplace', href: '/marketplace', icon: Store },
   { name: 'Wallet Manager', href: '/wallet', icon: Wallet },
   { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
@@ -21,6 +22,7 @@ const navigation = [
 ];
 
 export const Sidebar: React.FC = () => {
+  const { data: health } = useQuery({ queryKey: ['health'], queryFn: agentPayApi.getHealth });
   return (
     <aside className="w-64 bg-white/45 backdrop-blur-xl border-r border-white/40 flex flex-col h-screen sticky top-0 shadow-sm shadow-slate-900/5">
       {/* Brand Header */}
@@ -75,24 +77,16 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-semibold text-slate-800">Arbitrum Sepolia</span>
+              <span className="text-xs font-semibold text-slate-800">{health?.payment_mode === 'simulation' ? 'Simulation' : 'Configured EVM network'}</span>
             </div>
             <span className="text-[10px] px-1.5 py-0.5 bg-slate-200/80 text-slate-600 font-bold rounded">
-              EVM L2
+              EVM
             </span>
           </div>
           <p className="text-[11px] text-slate-500">
-            Chain ID: <span className="font-mono text-slate-700 font-medium">421614</span>
+            Chain ID: <span className="font-mono text-slate-700 font-medium">{health?.chain_id ?? '—'}</span>
           </p>
-          <a
-            href="https://sepolia.arbiscan.io"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2.5 flex items-center justify-between text-[11px] text-indigo-700 hover:text-indigo-900 font-bold group"
-          >
-            <span>Block Explorer</span>
-            <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-          </a>
+
         </div>
       </div>
     </aside>

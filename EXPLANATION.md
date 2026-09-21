@@ -1,3 +1,5 @@
+> Historical design document. For current supported behavior and limitations, see README.md and docs/security.md.
+
 # AgentPay: The Autonomous Payment Infrastructure for AI Agents
 
 Welcome to **AgentPay**! This document explains the entire project from top to bottom—why it exists, how it works, and the technical magic happening under the hood.

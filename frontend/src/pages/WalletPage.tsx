@@ -4,7 +4,6 @@ import {
   Wallet as WalletIcon,
   Copy,
   Check,
-  ExternalLink,
   RefreshCw,
 } from 'lucide-react';
 import { agentPayApi } from '../services/api';
@@ -44,7 +43,7 @@ export const WalletPage: React.FC = () => {
           <span>Agent Wallet Manager</span>
         </h1>
         <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-          Manage the dedicated non-custodial testnet wallet, spending ceilings, and EVM network settlement rails.
+          Inspect the agent ledger balance, configured wallet, and spending limits. Live signing is managed by the backend operator.
         </p>
       </div>
 
@@ -57,19 +56,19 @@ export const WalletPage: React.FC = () => {
             <div className="flex items-center gap-3 mb-3">
               <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/60 px-2.5 py-1 rounded-md border border-emerald-200/50">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                {wallet?.network || 'Arbitrum Sepolia'}
+                {wallet?.network || 'Loading…'}
               </span>
               <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-white/60 text-slate-700 border border-slate-300/50 font-mono tracking-widest">
-                ID: 421614
+                ID: {wallet?.chain_id ?? '—'}
               </span>
             </div>
 
             <div className="text-4xl lg:text-5xl font-extrabold text-slate-900 font-mono tracking-tight mt-1">
-              ${wallet?.balance !== undefined ? wallet.balance.toFixed(3) : '10.000'}{' '}
+              ${wallet?.balance !== undefined ? wallet.balance.toFixed(3) : '—'}{' '}
               <span className="text-xl lg:text-2xl font-sans text-indigo-700">{wallet?.currency || 'USDC'}</span>
             </div>
             <p className="text-sm font-medium text-slate-600 mt-2">
-              Testnet Mock Tokens for autonomous AI micropayments.
+              Available ledger balance after payment reservations.
             </p>
           </div>
 
@@ -80,7 +79,7 @@ export const WalletPage: React.FC = () => {
             </span>
             <div className="flex items-center justify-between gap-3 mt-2 bg-white/70 px-4 py-3 rounded-xl border border-slate-300/50 shadow-sm transition-all hover:border-indigo-200">
               <span className="font-mono text-sm font-medium text-slate-800 truncate select-all">
-                {wallet?.address || '0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'}
+                {wallet?.address || '—'}
               </span>
               <button
                 onClick={copyAddress}
@@ -96,15 +95,7 @@ export const WalletPage: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between mt-4 px-1">
-              <a
-                href={`https://sepolia.arbiscan.io/address/${wallet?.address}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1.5 transition-colors group"
-              >
-                <span>View on Arbiscan</span>
-                <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </a>
+
 
               <button
                 onClick={() => refetch()}

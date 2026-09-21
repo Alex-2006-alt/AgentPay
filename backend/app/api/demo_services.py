@@ -1,139 +1,77 @@
-from fastapi import APIRouter, Header, HTTPException, Query, status
-from pydantic import BaseModel
+"""Deterministic demo providers, with payment-bound, replay-safe invocation."""
+import hashlib
+import json
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.auth import current_user, owned_agent
+from app.config import settings
+from app.database.database import get_db
+from app.database.locking import agent_transaction
+from app.database.models import Payment, PaymentOperation, PaymentRedemption, Service, ServiceCall, Transaction
 
 router = APIRouter(prefix="/demo", tags=["Demo Microservices"])
+DEMO_ENDPOINTS = {
+    "weather", "weather_basic", "translate", "translate_basic", "translate_advanced",
+    "summarize", "summarize_ext", "ocr", "search", "generate_image",
+}
 
 
-class TranslateRequest(BaseModel):
-    text: str
-    target_language: str = "Hindi"
-
-
-class SummarizeRequest(BaseModel):
-    text: str
-    max_length: int = 100
-
-
-class OCRRequest(BaseModel):
-    image_url: str
-
-
-class ImageGenerateRequest(BaseModel):
-    prompt: str
-
-
-@router.get("/weather")
-async def get_weather(
-    city: str = Query("New York", description="City to get weather for"),
-    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
-):
-    """Paid Weather Matrix API ($0.001 / call)."""
-    return {
-        "service": "Weather Matrix API",
-        "price_paid": 0.001,
-        "currency": "USDC",
-        "city": city,
-        "temperature": "22°C",
-        "condition": "Partly Cloudy",
-        "humidity": "64%",
-        "wind_speed": "12 km/h",
-        "tx_proof": x_payment_tx,
-    }
-
-
-@router.post("/translate")
-async def translate_text(
-    payload: TranslateRequest,
-    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
-):
-    """Paid Neural Polyglot Translation API ($0.005 / call)."""
-    translated_text = ""
-    if payload.target_language.lower() in ["hindi", "hi"]:
-        translated_text = "एजेंटपे (AgentPay) स्वायत्त एआई एजेंटों के लिए सुरक्षित माइक्रोपेमेंट और वित्तीय नियंत्रण अवसंरचना प्रदान करता है।"
-    elif payload.target_language.lower() in ["spanish", "es"]:
-        translated_text = "AgentPay proporciona infraestructura de micropagos seguros y control financiero para agentes de IA autónomos."
-    elif payload.target_language.lower() in ["french", "fr"]:
-        translated_text = "AgentPay fournit une infrastructure de micropaiement sécurisée et de contrôle financier pour les agents IA autonomes."
+def demo_result(endpoint, payload):
+    result = {"demo": True, "notice": "Synthetic demo data; no external AI or live data provider was used."}
+    text = str(payload.get("text", ""))
+    if endpoint.startswith("weather"):
+        result.update(city=payload.get("city", "unspecified"), temperature_c=22, condition="Partly cloudy (demo)")
+    elif endpoint.startswith("translate"):
+        result.update(source_text=text, target_language=payload.get("target_language", "Hindi"),
+                      translation=f"[Demo translation placeholder] {text}")
+    elif endpoint.startswith("summarize"):
+        result.update(summary=" ".join(text.split()[:100]), method="First 100 words, deterministic extract")
+    elif endpoint == "search":
+        result.update(query=payload.get("query", ""), results=[], notice="Demo search; no web search performed.")
+    elif endpoint == "ocr":
+        result.update(image_url=payload.get("image_url"), extracted_text=None, notice="Demo OCR; no image was processed.")
     else:
-        translated_text = f"[{payload.target_language.upper()} TRANSLATION]: {payload.text}"
-
-    return {
-        "service": "Neural Polyglot Translation",
-        "price_paid": 0.005,
-        "currency": "USDC",
-        "source_text": payload.text,
-        "target_language": payload.target_language,
-        "translated_text": translated_text,
-        "tx_proof": x_payment_tx,
-    }
+        result.update(prompt=payload.get("prompt", ""), image_url=None, notice="Demo image provider; no image was generated.")
+    return result
 
 
-@router.post("/summarize")
-async def summarize_text(
-    payload: SummarizeRequest,
-    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
-):
-    """Paid DeepSynth Summarization API ($0.010 / call)."""
-    return {
-        "service": "DeepSynth Summarization",
-        "price_paid": 0.010,
-        "currency": "USDC",
-        "summary": "AgentPay is an autonomous payment framework that prevents LLM hallucinations from draining crypto wallets by enforcing hard policy limits and smart contract settlement.",
-        "key_takeaways": [
-            "Deterministic policy engine blocks unapproved or over-budget payments",
-            "Settles micropayments reliably on EVM testnet",
-            "Provides an auditable machine-to-machine commerce layer for AI agents",
-        ],
-        "tx_proof": x_payment_tx,
-    }
-
-
-@router.post("/ocr")
-async def extract_text(
-    payload: OCRRequest,
-    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
-):
-    """Paid VisionText OCR API ($0.002 / call)."""
-    return {
-        "service": "VisionText OCR Extraction",
-        "price_paid": 0.002,
-        "currency": "USDC",
-        "extracted_text": "Invoice #4029 - Total Amount Due: $450.00 - Paid in Full",
-        "confidence": 0.98,
-        "tx_proof": x_payment_tx,
-    }
-
-
-@router.get("/search")
-async def web_search(
-    query: str = Query(..., description="Search query"),
-    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
-):
-    """Paid Web Index Search API ($0.003 / call)."""
-    return {
-        "service": "Quantum Web Search",
-        "price_paid": 0.003,
-        "currency": "USDC",
-        "query": query,
-        "results": [
-            {"title": "AgentPay Documentation", "url": "https://agentpay.network/docs"},
-            {"title": "How to settle micropayments on EVM", "url": "https://agentpay.network/blog/evm-settlement"},
-        ],
-        "tx_proof": x_payment_tx,
-    }
-
-
-@router.post("/generate_image")
-async def generate_image(
-    payload: ImageGenerateRequest,
-    x_payment_tx: str = Header(None, description="Blockchain payment proof hash"),
-):
-    """Paid Diffusion Art API ($0.050 / call)."""
-    return {
-        "service": "Diffusion Art Generation",
-        "price_paid": 0.050,
-        "currency": "USDC",
-        "prompt": payload.prompt,
-        "image_url": "ipfs://QmYwAPJzv5CZsnA625s3Xf2sm5D14K5PGn4EQcqTz4mXmZ",
-        "tx_proof": x_payment_tx,
-    }
+@router.api_route("/{endpoint}", methods=["GET", "POST"])
+async def invoke_demo(endpoint: str, request: Request, x_payment_id: str = Header(...),
+                      user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    if endpoint not in DEMO_ENDPOINTS:
+        raise HTTPException(404, "Unknown demo provider")
+    payload = dict(request.query_params) if request.method == "GET" else await request.json()
+    if not isinstance(payload, dict):
+        raise HTTPException(422, "Provider input must be an object")
+    encoded = json.dumps(payload, sort_keys=True)
+    if len(encoded) > 100_000:
+        raise HTTPException(413, "Provider input is too large")
+    digest = hashlib.sha256((endpoint + encoded).encode()).hexdigest()
+    payment = await db.get(Payment, x_payment_id)
+    if not payment:
+        raise HTTPException(402, "Payment required")
+    tx = await db.get(Transaction, payment.transaction_id)
+    await owned_agent(db, tx.agent_id, user_id)
+    agent_id = tx.agent_id
+    async with agent_transaction(db, agent_id):
+        payment = await db.get(Payment, x_payment_id)
+        tx = await db.get(Transaction, payment.transaction_id)
+        service = await db.get(Service, tx.service_id)
+        op = (await db.execute(select(PaymentOperation).where(PaymentOperation.transaction_id == tx.id))).scalar_one_or_none()
+        valid = op and (op.status == "completed" or (
+            op.status == "simulated" and op.mode == "simulation" and settings.PAYMENT_MODE == "simulation"))
+        if not valid or not service or service.endpoint != f"/api/demo/{endpoint}":
+            raise HTTPException(402, "Payment does not authorize this service")
+        previous = await db.get(PaymentRedemption, payment.id)
+        if previous:
+            if previous.request_digest != digest:
+                raise HTTPException(409, "Payment already redeemed for a different request")
+            return json.loads(previous.response)
+        result = demo_result(endpoint, payload)
+        result.update(payment_id=payment.id, payment_status=op.status)
+        response = json.dumps(result)
+        db.add(PaymentRedemption(payment_id=payment.id, request_digest=digest, response=response))
+        db.add(ServiceCall(transaction_id=tx.id, service_id=service.id, request_payload=encoded,
+                           response_payload=response, status="success"))
+    return result

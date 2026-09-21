@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import get_db
 from app.database.models import Provider, Service
 from app.schemas.services import ServiceCreate, ServiceResponse
+from app.auth import administrator
+from app.agent.tools import validate_endpoint
 
 router = APIRouter(prefix="/services", tags=["Services & Marketplace"])
 
@@ -40,8 +42,10 @@ async def get_service_details(service_id: str, db: AsyncSession = Depends(get_db
 
 
 @router.post("", response_model=ServiceResponse, status_code=status.HTTP_201_CREATED)
-async def register_service(payload: ServiceCreate, db: AsyncSession = Depends(get_db)):
+async def register_service(payload: ServiceCreate, db: AsyncSession = Depends(get_db),
+                           user_id: str = Depends(administrator)):
     """Register a new micro-service provider endpoint."""
+    validate_endpoint(payload.endpoint)
     provider = await db.get(Provider, payload.provider_id)
     if not provider:
         raise HTTPException(

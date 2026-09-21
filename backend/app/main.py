@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import logging
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
+from app.auth import current_user
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -43,12 +44,12 @@ app.add_middleware(
 
 # Register API Routers
 app.include_router(health.router)
-app.include_router(services.router)
-app.include_router(agents.router)
-app.include_router(policies.router)
-app.include_router(payments.router)
-app.include_router(transactions.router)
-app.include_router(agent_task.router)
+app.include_router(services.router, dependencies=[Depends(current_user)])
+app.include_router(agents.router, dependencies=[Depends(current_user)])
+app.include_router(policies.router, dependencies=[Depends(current_user)])
+app.include_router(payments.router, dependencies=[Depends(current_user)])
+app.include_router(transactions.router, dependencies=[Depends(current_user)])
+app.include_router(agent_task.router, dependencies=[Depends(current_user)])
 app.include_router(demo_services.router, prefix="/api")
 
 
@@ -57,7 +58,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Global unhandled error on {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"success": False, "message": "An internal server error occurred", "detail": str(exc)},
+        content={"success": False, "message": "An internal server error occurred"},
     )
 
 

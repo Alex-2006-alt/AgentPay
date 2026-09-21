@@ -6,20 +6,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import get_db
 from app.database.models import Agent, Policy, User, Wallet
 from app.schemas.agents import AgentCreate, AgentResponse, WalletResponse
+from app.auth import current_user, owned_agent
+from app.config import settings
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
 
 @router.get("", response_model=List[AgentResponse])
-async def list_agents(db: AsyncSession = Depends(get_db)):
+async def list_agents(db: AsyncSession = Depends(get_db), user_id: str = Depends(current_user)):
     """List all registered autonomous agents."""
-    result = await db.execute(select(Agent))
+    result = await db.execute(select(Agent).where(Agent.user_id == user_id))
     return result.scalars().all()
 
 
 @router.post("", response_model=AgentResponse, status_code=status.HTTP_201_CREATED)
-async def create_agent(payload: AgentCreate, db: AsyncSession = Depends(get_db)):
+async def create_agent(payload: AgentCreate, db: AsyncSession = Depends(get_db), user_id: str = Depends(current_user)):
     """Create and provision a new autonomous AI agent with wallet and policy."""
+    if payload.user_id != user_id:
+        raise HTTPException(403, "Cannot create another user's agent")
+    if settings.PAYMENT_MODE == "live":
+        raise HTTPException(409, "Provision the single live signer agent administratively before enabling live mode")
     user = await db.get(User, payload.user_id)
     if not user:
         # Auto-create demo user if not found
@@ -57,8 +63,9 @@ async def create_agent(payload: AgentCreate, db: AsyncSession = Depends(get_db))
 
 
 @router.get("/{agent_id}/wallet", response_model=WalletResponse)
-async def get_agent_wallet(agent_id: str, db: AsyncSession = Depends(get_db)):
+async def get_agent_wallet(agent_id: str, db: AsyncSession = Depends(get_db), user_id: str = Depends(current_user)):
     """Retrieve the financial wallet state and balance of an agent."""
+    await owned_agent(db, agent_id, user_id)
     result = await db.execute(select(Wallet).where(Wallet.agent_id == agent_id))
     wallet = result.scalars().first()
     if not wallet:

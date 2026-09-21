@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ShieldCheck,
@@ -9,13 +9,11 @@ import {
   Zap,
 } from 'lucide-react';
 import { agentPayApi } from '../services/api';
+import type { Policy } from '../types';
 
 export const PoliciesPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [maxTx, setMaxTx] = useState<number>(0.10);
-  const [dailyLimit, setDailyLimit] = useState<number>(2.00);
-  const [monthlyLimit, setMonthlyLimit] = useState<number>(20.00);
-  const [autoPayment, setAutoPayment] = useState<boolean>(true);
+  const [draft, setDraft] = useState<Partial<Policy>>({});
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const { data: policy, isLoading } = useQuery({
@@ -28,14 +26,16 @@ export const PoliciesPage: React.FC = () => {
     queryFn: () => agentPayApi.getServices(),
   });
 
-  useEffect(() => {
-    if (policy) {
-      setMaxTx(policy.max_transaction);
-      setDailyLimit(policy.daily_limit);
-      setMonthlyLimit(policy.monthly_limit);
-      setAutoPayment(policy.auto_payment);
-    }
-  }, [policy]);
+  const maxTx = draft.max_transaction ?? policy?.max_transaction ?? 0.10;
+  const dailyLimit = draft.daily_limit ?? policy?.daily_limit ?? 2;
+  const monthlyLimit = draft.monthly_limit ?? policy?.monthly_limit ?? 20;
+  const autoPayment = draft.auto_payment ?? policy?.auto_payment ?? false;
+  const approvedServices = draft.approved_services ?? policy?.approved_services ?? '';
+  const setMaxTx = (value: number) => setDraft(current => ({ ...current, max_transaction: value }));
+  const setDailyLimit = (value: number) => setDraft(current => ({ ...current, daily_limit: value }));
+  const setMonthlyLimit = (value: number) => setDraft(current => ({ ...current, monthly_limit: value }));
+  const setAutoPayment = (value: boolean) => setDraft(current => ({ ...current, auto_payment: value }));
+  const setApprovedServices = (value: string) => setDraft(current => ({ ...current, approved_services: value }));
 
   const updateMutation = useMutation({
     mutationFn: (updated: {
@@ -43,9 +43,11 @@ export const PoliciesPage: React.FC = () => {
       daily_limit: number;
       monthly_limit: number;
       auto_payment: boolean;
-    }) => agentPayApi.updateAgentPolicy('agent_primary', updated),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policy'] });
+      approved_services: string;
+    }) => agentPayApi.updateAgentPolicy(undefined, updated),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['policy'], updated);
+      setDraft({});
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2500);
     },
@@ -58,6 +60,7 @@ export const PoliciesPage: React.FC = () => {
       daily_limit: Number(dailyLimit),
       monthly_limit: Number(monthlyLimit),
       auto_payment: autoPayment,
+      approved_services: approvedServices,
     });
   };
 
@@ -176,10 +179,13 @@ export const PoliciesPage: React.FC = () => {
                 <h2 className="text-lg font-bold text-slate-900">Authorized Service Whitelist</h2>
               </div>
               <span className="text-[11px] font-bold px-3 py-1 bg-emerald-100/60 text-emerald-800 border border-emerald-200/50 rounded-full shadow-sm">
-                3 Verified Services
+                {services?.length ?? 0} Registered Services
               </span>
             </div>
 
+            <label className="block text-sm">Approved service IDs (comma-separated; * allows all, empty blocks all)
+              <textarea className="mt-2 w-full rounded border p-3" value={approvedServices} onChange={event => setApprovedServices(event.target.value)} />
+            </label>
             <div className="space-y-3">
               {services?.map((srv) => (
                 <div
@@ -190,7 +196,7 @@ export const PoliciesPage: React.FC = () => {
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
                     <div>
                       <span className="text-sm font-bold text-slate-900">{srv.name}</span>
-                      <div className="text-xs text-slate-500 font-mono mt-0.5">{srv.endpoint}</div>
+                      <div className="text-xs text-slate-500 font-mono mt-0.5">{srv.id}</div>
                     </div>
                   </div>
                   <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-100/50 px-2.5 py-1 rounded-md border border-indigo-200/40">
@@ -202,6 +208,7 @@ export const PoliciesPage: React.FC = () => {
           </div>
 
           {/* Save Button */}
+          {updateMutation.isError && <p role="alert" className="text-red-700">Policy update failed. Reload the policy and check the API error before retrying.</p>}
           <div className="flex items-center justify-end gap-4 pt-2">
             {savedSuccess && (
               <span className="text-sm text-emerald-600 flex items-center gap-1.5 font-bold animate-in fade-in slide-in-from-right-4">
@@ -212,7 +219,7 @@ export const PoliciesPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={updateMutation.isPending}
+              disabled={updateMutation.isPending || !policy}
               className="flex items-center gap-2 px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-indigo-600/30 disabled:opacity-50 disabled:transform-none"
             >
               <Save className="w-4 h-4" />

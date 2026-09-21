@@ -9,6 +9,7 @@ import { MarketplacePage } from './pages/MarketplacePage';
 import { WalletPage } from './pages/WalletPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { PoliciesPage } from './pages/PoliciesPage';
+import { AccessGate } from './components/AccessGate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +23,7 @@ const queryClient = new QueryClient({
 export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
+      <AccessGate onLogout={() => queryClient.clear()}>
       <Router>
         <div className="relative min-h-screen bg-[#C1D3E9] text-slate-900 font-sans selection:bg-[#7EA9E6]/30 selection:text-slate-900">
           {/* Ambient Slate Minimal Orbs (Subtle, non-glaring ambient reflections) */}
@@ -62,6 +64,7 @@ export const App: React.FC = () => {
           </div>
         </div>
       </Router>
+      </AccessGate>
     </QueryClientProvider>
   );
 };

@@ -1,63 +1,34 @@
-# 🏛️ AgentPay Architecture
+# Architecture
 
-## System Diagram
-```
-┌─────────────────────────────────────────────────────────┐
-│                     FRONTEND                            │
-│                  React + Vite + Tailwind                │
-│                                                         │
-│ Dashboard │ Agent Console │ Marketplace │ Wallet │ Tx   │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        │ REST / WebSocket
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│                    API BACKEND                           │
-│                    FastAPI (Python)                     │
-│                                                         │
-│ Auth │ Agents │ Services │ Payments │ Transactions      │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│ AI AGENT     │ │ POLICY       │ │ SERVICE      │
-│ ENGINE       │ │ ENGINE       │ │ DISCOVERY    │
-│              │ │              │ │              │
-│ Planning     │ │ Budget       │ │ APIs         │
-│ Reasoning    │ │ Limits       │ │ Pricing      │
-│ Tool use     │ │ Permissions  │ │ Reputation   │
-└──────┬───────┘ └──────┬───────┘ └──────┬───────┘
-       │                │                │
-       └────────────────┼────────────────┘
-                        ▼
-              ┌──────────────────┐
-              │ PAYMENT ENGINE   │
-              │                  │
-              │ Wallet / Signer  │
-              │ Payment Request  │
-              │ Verification     │
-              └────────┬─────────┘
-                       │
-                       ▼
-              ┌──────────────────┐
-              │ SMART CONTRACT   │
-              │                  │
-              │ Spending limits  │
-              │ Whitelist        │
-              │ Payment events   │
-              └────────┬─────────┘
-                       │
-                       ▼
-                 EVM TESTNET
-                       │
-                       ▼
-              SERVICE PROVIDERS
-```
+React/React Query -> authenticated FastAPI routes -> shared payment engine ->
+integer ledger and explicit simulation/live settlement -> provider HTTP call.
 
-## Layers
-1. **Presentation Layer**: React 18, Vite, TypeScript, Tailwind CSS, TanStack Query.
-2. **Application & Agent Layer**: FastAPI, Python async engine, LangChain / LiteLLM / Gemini API.
-3. **Guardrails & Policy Engine**: Deterministic rules engine (Max Tx, Daily Limit, Whitelist).
-4. **Settlement & Blockchain Layer**: Solidity smart contracts, EVM testnet (Arbitrum/Base Sepolia), web3.py & viem.
-5. **Persistence Layer**: PostgreSQL with SQLAlchemy 2.0 Async ORM and Alembic migrations.
+`app/auth.py` resolves the configured bearer identity and enforces agent
+ownership. `app/payment_engine.py` owns policy validation, budget reservations,
+idempotency, receipt reconciliation and one-time reservation refunds. The API
+and task executor both use this engine.
+
+`app/database/locking.py` serializes writes by agent on PostgreSQL and serializes
+all writers on SQLite. Existing schema columns are retained for compatibility.
+`ledger_accounts`, `payment_operations`, `payment_redemptions`, and `task_runs`
+add authoritative integer balances, payment identity, replay protection and task
+results. Startup creates these additive tables without rewriting historical data.
+
+`app/blockchain/client.py` only performs live operations. It validates chain,
+contract linkage, signer and policy, prepares signed bytes, broadcasts them, and
+verifies exact receipt events. Simulation exists only in the payment engine and
+cannot be entered because an RPC call failed.
+
+`app/agent/planner.py` classifies supported intents deterministically.
+`app/agent/tools.py` chooses approved active providers and invokes known demo
+endpoints through HTTP/ASGI or operator-trusted HTTPS providers. Demo redemption
+is transactional and returns cached output for the same payment and input.
+
+`AgentPay.sol` transfers ERC-20 tokens from the signing wallet to the provider.
+`PaymentManager.sol` enforces enabled status, spending limits and address
+allowlisting, with spending updates restricted to AgentPay. Funds remain in the
+signer's ERC-20 wallet until transfer; this is not an escrow/custody contract.
+
+The frontend polls API state and presents simulation explicitly. It does not
+embed API credentials or assume a particular public block explorer. See
+`security.md` for operational boundaries and recovery behavior.

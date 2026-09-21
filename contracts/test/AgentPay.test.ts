@@ -28,6 +28,7 @@ describe("AgentPay Policy and Payment Engine", function () {
     // 3. Deploy AgentPay
     const AgentPay = await ethers.getContractFactory("AgentPay");
     agentPay = await AgentPay.deploy(await mockUSDC.getAddress(), await paymentManager.getAddress());
+    await paymentManager.setPaymentContract(await agentPay.getAddress());
 
     // Setup Agent Wallet
     // Mint 100 USDC to agent
@@ -37,7 +38,7 @@ describe("AgentPay Policy and Payment Engine", function () {
 
     // Setup Policies via PaymentManager
     // Daily Limit: 10 USDC, Max Tx: 2 USDC
-    await paymentManager.setLimits(agent.address, parseUSDC("10"), parseUSDC("2"));
+    await paymentManager.setPolicy(agent.address, parseUSDC("10"), parseUSDC("30"), parseUSDC("2"), true);
     
     // Whitelist the authorized service
     await paymentManager.setServiceApproval(agent.address, service.address, true);
@@ -51,6 +52,25 @@ describe("AgentPay Policy and Payment Engine", function () {
 
     expect(await mockUSDC.balanceOf(service.address)).to.equal(amount);
     expect(await mockUSDC.balanceOf(agent.address)).to.equal(parseUSDC("98.5"));
+  });
+
+  it("prevents unauthorized spending records", async function () {
+    await expect(paymentManager.connect(unauthorizedService).recordSpending(agent.address, 1))
+      .to.be.revertedWith("Only payment contract");
+    expect(await paymentManager.dailySpending(agent.address, Math.floor((await ethers.provider.getBlock("latest"))!.timestamp / 86400))).to.equal(0);
+  });
+
+  it("enforces disabled payments and monthly limits", async function () {
+    await paymentManager.setPolicy(agent.address, parseUSDC("10"), parseUSDC("1"), parseUSDC("2"), false);
+    await expect(agentPay.connect(agent).makePayment(service.address, 1)).to.be.revertedWith("Payments disabled");
+    await paymentManager.setPolicy(agent.address, parseUSDC("10"), parseUSDC("1"), parseUSDC("2"), true);
+    await expect(agentPay.connect(agent).makePayment(service.address, parseUSDC("1.5"))).to.be.revertedWith("Exceeds monthly limit");
+  });
+
+  it("rolls back spending when token transfer fails", async function () {
+    await mockUSDC.connect(agent).approve(await agentPay.getAddress(), 0);
+    await expect(agentPay.connect(agent).makePayment(service.address, parseUSDC("1"))).to.be.reverted;
+    expect(await paymentManager.dailySpending(agent.address, Math.floor((await ethers.provider.getBlock("latest"))!.timestamp / 86400))).to.equal(0);
   });
 
   it("should revert if payment exceeds max transaction limit", async function () {

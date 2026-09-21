@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 
 class HealthResponse(BaseModel):
+    payment_mode: str
+    chain_id: int
     status: str
     version: str
     environment: str

@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  ExternalLink,
   Filter,
 } from 'lucide-react';
 import { agentPayApi } from '../services/api';
@@ -37,7 +36,7 @@ export const TransactionsPage: React.FC = () => {
         {/* Filter Pills */}
         <div className="flex items-center gap-2 bg-white/45 backdrop-blur-md border border-white/40 shadow-sm p-1.5 rounded-xl self-start">
           <Filter className="w-4 h-4 text-slate-400 ml-2" />
-          {['all', 'completed', 'rejected', 'pending'].map((st) => (
+          {['all', 'simulated', 'completed', 'rejected', 'failed', 'pending'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -122,19 +121,16 @@ export const TransactionsPage: React.FC = () => {
                     {/* Tx Hash */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       {tx.tx_hash ? (
-                        <a
-                          href={`https://sepolia.arbiscan.io/tx/${tx.tx_hash}`}
-                          target="_blank"
-                          rel="noreferrer"
+                        <span
+                          title={tx.tx_hash}
                           className="font-mono text-[12px] font-medium text-indigo-700 hover:text-indigo-900 hover:underline flex items-center gap-1.5 bg-white/60 px-2 py-1 rounded-lg border border-slate-300/50 w-fit shadow-inner transition-colors"
                         >
                           <span>
                             {tx.tx_hash.slice(0, 8)}...{tx.tx_hash.slice(-6)}
                           </span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                        </span>
                       ) : (
-                        <span className="text-xs font-medium text-slate-500 italic">Internal Policy Verdict</span>
+                        <span className="text-xs font-medium text-slate-500 italic">No on-chain transaction</span>
                       )}
                     </td>
 

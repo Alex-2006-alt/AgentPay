@@ -42,7 +42,7 @@ export const DashboardPage: React.FC = () => {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <span>Autonomous Settlement Overview</span>
             <span className="text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-              Live Network
+              Payment Overview
             </span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -73,7 +73,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="mt-4">
             <div className="text-3xl font-bold text-slate-900 font-mono tracking-tight">
-              ${analytics?.wallet_balance !== undefined ? analytics.wallet_balance.toFixed(3) : '10.000'}
+              ${analytics?.wallet_balance !== undefined ? analytics.wallet_balance.toFixed(3) : '—'}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-2 font-medium">
               <span className="text-indigo-600 font-bold">USDC</span>
@@ -115,7 +115,7 @@ export const DashboardPage: React.FC = () => {
               {analytics?.successful_transactions || 0}
             </div>
             <div className="flex items-center gap-1 text-xs text-emerald-700 mt-2 font-bold">
-              <span>100% testnet verified</span>
+              <span>Recorded successful payments</span>
             </div>
           </div>
         </div>
@@ -146,7 +146,7 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-300/40">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Recent Payment Settlements</h2>
-              <p className="text-sm text-slate-500 mt-1">Live micropayments executed by autonomous agents</p>
+              <p className="text-sm text-slate-500 mt-1">Recorded payments and policy decisions</p>
             </div>
             <Link
               to="/transactions"

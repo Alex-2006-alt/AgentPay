@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 class AgentTaskRequest(BaseModel):
     agent_id: Optional[str] = Field("agent_primary", example="agent_primary")
-    task: str = Field(..., example="Translate this document into Hindi and summarize it.")
+    task: str = Field(..., min_length=1, max_length=10000, example="Translate this document into Hindi and summarize it.")
     document_content: Optional[str] = Field(None, example="AgentPay provides an autonomous settlement rails...")
 
 
@@ -19,6 +19,7 @@ class ExecutionStep(BaseModel):
 
 
 class AgentTaskResponse(BaseModel):
+    settlement_mode: str = "simulation"
     task_id: str
     task: str
     status: str  # completed, blocked_by_policy, error

@@ -52,7 +52,7 @@ export interface Transaction {
   service_name?: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'approved' | 'completed' | 'rejected' | 'failed';
+  status: 'pending' | 'approved' | 'completed' | 'simulated' | 'rejected' | 'failed';
   rejection_reason?: string;
   tx_hash?: string;
   block_number?: number;
@@ -81,9 +81,10 @@ export interface ExecutionStep {
 }
 
 export interface AgentTaskResponse {
+  settlement_mode: 'simulation' | 'live';
   task_id: string;
   task: string;
-  status: 'completed' | 'blocked_by_policy' | 'error';
+  status: 'completed' | 'blocked_by_policy' | 'pending' | 'error';
   steps: ExecutionStep[];
   final_output?: string;
   total_cost: number;

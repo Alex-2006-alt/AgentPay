@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from app.money import units
 
 
 class PaymentRequest(BaseModel):
@@ -10,9 +11,15 @@ class PaymentRequest(BaseModel):
     currency: str = Field("USDC", example="USDC")
     reason: Optional[str] = Field("Service Execution", example="Translate document")
 
+    @field_validator("amount")
+    @classmethod
+    def valid_amount(cls, value):
+        units(value)
+        return value
+
 
 class PaymentVerificationRequest(BaseModel):
-    tx_hash: str = Field(..., example="0x4f8a12...9b")
+    tx_hash: str = Field(..., pattern=r"^0x[0-9a-fA-F]{64}$")
     payer_address: Optional[str] = None
 
 

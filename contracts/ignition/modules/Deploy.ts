@@ -9,6 +9,7 @@ export default buildModule("AgentPayModule", (m) => {
 
   // 3. Deploy AgentPay, passing the addresses of the two previous contracts
   const agentPay = m.contract("AgentPay", [mockUSDC, paymentManager]);
+  m.call(paymentManager, "setPaymentContract", [agentPay]);
 
   return { mockUSDC, paymentManager, agentPay };
 });

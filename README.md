@@ -1,119 +1,59 @@
-# 🚀 AgentPay — Autonomous Payment Infrastructure & Policy Guardrails for AI Agents
+# AgentPay
 
-> **Programmable, secure machine-to-machine (M2M) micropayments for autonomous AI agents.**
+Policy-controlled payments for agent-selected services, with a React dashboard,
+FastAPI backend, and Solidity payment contracts.
 
----
+## Current behavior
 
-## 🌟 Overview
+- **Simulation is the default.** Payments use demo balances, are labeled
+  `simulated`, and have no blockchain hash. Demo providers return synthetic data.
+- **Live settlement is explicit.** A configured, externally funded signer pays
+  through deployed contracts. Chain failures never fall back to simulation.
+- Both direct payments and agent tasks use the same policy engine: active agent,
+  service allowlist, exact service price, USDC currency, per-payment limit,
+  rolling 24-hour/30-day budgets, auto-payment permission, and available balance.
+- An integer USDC ledger reserves funds under a database lock. Idempotency keys
+  prevent duplicate charges; uncertain settlement stays pending until verified.
+- Private APIs require bearer credentials and enforce agent ownership. Service
+  registration additionally requires an administrator credential.
+- The planner is a deterministic keyword classifier, not an LLM. It calls
+  registered providers over HTTP and displays their actual responses. Local demo
+  providers enforce payment-bound, replay-safe access.
 
-As AI agents evolve from conversational assistants into autonomous actors that browse the web, consume paid APIs, purchase computational resources, and collaborate with other agents, they require a native financial rail.
+## Layout
 
-However, **giving an LLM direct access to a crypto wallet or private key is a dangerous security liability** — prompt injections, hallucinated loops, and rogue API calls can drain wallets in seconds.
+| Directory | Purpose |
+| --- | --- |
+| `frontend/` | React/TypeScript/Vite dashboard and credential entry |
+| `backend/` | API, policy/payment engine, integer ledger, task execution, tests |
+| `contracts/` | ERC-20 settlement, policy contracts, Hardhat tests/deployment |
+| `docs/` | Setup, API, architecture, security model and implementation plan |
+| `demo-services/` | Notes on the demo endpoints hosted by the backend |
 
-**AgentPay** solves this by establishing a **dual-layer policy & verification engine**:
-1. **Off-Chain Policy Engine**: Instant enforcement of per-transaction caps, daily/monthly budgets, and service whitelists.
-2. **On-Chain Settlement Layer**: Immutable spending rules, smart-contract fund custody, and cryptographic payment proofs.
+Start with [setup](docs/setup.md). See [API behavior](docs/api.md),
+[security and limitations](docs/security.md), and [the remediation plan](docs/REMEDIATION_PLAN.md).
+The older blueprint and `EXPLANATION.md` describe design aspirations, not a
+production-readiness guarantee.
 
----
+## Verification
 
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                     FRONTEND                            │
-│                  React + Vite + Tailwind                │
-│                                                         │
-│ Dashboard │ Agent Console │ Marketplace │ Wallet │ Tx   │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        │ REST / WebSocket
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│                    API BACKEND                           │
-│                    FastAPI (Python)                     │
-│                                                         │
-│ Auth │ Agents │ Services │ Payments │ Transactions      │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│ AI AGENT     │ │ POLICY       │ │ SERVICE      │
-│ ENGINE       │ │ ENGINE       │ │ DISCOVERY    │
-│              │ │              │ │              │
-│ Planning     │ │ Budget       │ │ APIs         │
-│ Reasoning    │ │ Limits       │ │ Pricing      │
-│ Tool use     │ │ Permissions  │ │ Reputation   │
-└──────┬───────┘ └──────┬───────┘ └──────┬───────┘
-       │                │                │
-       └────────────────┼────────────────┘
-                        ▼
-              ┌──────────────────┐
-              │ PAYMENT ENGINE   │
-              │                  │
-              │ Wallet / Signer  │
-              │ Payment Request  │
-              │ Verification     │
-              └────────┬─────────┘
-                       │
-                       ▼
-              ┌──────────────────┐
-              │ SMART CONTRACT   │
-              │                  │
-              │ Spending limits  │
-              │ Whitelist        │
-              │ Payment events   │
-              └────────┬─────────┘
-                       │
-                       ▼
-                 EVM TESTNET
-                       │
-                       ▼
-              SERVICE PROVIDERS
+```sh
+cd backend
+python -m pytest -q
+cd ../contracts
+npm ci
+npm test
+cd ../frontend
+npm ci
+npm run build
 ```
 
----
+Backend tests use a separate temporary database. The optional live integration
+test uses only a local Hardhat node at port 18545; see setup instructions.
 
-## 📁 Repository Structure
+## Scope
 
-```
-AgentPay/
-├── backend/            # FastAPI backend, Agent planner, Policy engine, Database models
-├── frontend/           # React + Vite dashboard, Agent console, Marketplace UI
-├── contracts/          # Solidity smart contracts (Hardhat/Foundry), tests, deployment scripts
-├── demo-services/      # Mock paid micro-APIs (Weather, Translation, Summarization)
-├── docs/               # Architecture specs and project blueprints
-├── tests/              # End-to-end integration tests
-└── README.md           # Project documentation
-```
-
----
-
-## 🚀 Key Features
-
-- **🧠 Autonomous Agent Planner**: Breaks user instructions into service-dependent subtasks.
-- **🛡️ Deterministic Policy Engine**: Hard financial limits unaffected by LLM hallucinations.
-- **🏪 Service Marketplace**: Dynamic registry of discoverable paid APIs with pricing & reputation.
-- **⛓️ Smart Contract Settlement**: Verifiable micropayments settled on EVM testnet with event emission.
-- **📊 Real-Time Analytics**: Visual tracking of agent spend, API latency, and security blocks.
-- **😈 Prompt Injection Defense**: Real-time rejection of rogue payment requests.
-
----
-
-## 📜 Development Phasing
-
-- [x] **Phase 0**: Repository Initialization & Blueprint Finalization
-- [x] **Phase 1**: Workspace Foundation (FastAPI backend + React frontend)
-- [x] **Phase 2**: Demo Micro-APIs (`/weather`, `/translate`, `/summarize`)
-- [x] **Phase 3**: AI Agent Engine with Function Calling & Tool Execution
-- [x] **Phase 4**: Policy Engine & Guardrails
-- [x] **Phase 5**: Solidity Smart Contracts & EVM Testnet Integration
-- [x] **Phase 6**: AI + Blockchain Integration (Web3 Settlement)
-- [x] **Phase 7**: Interactive Dashboard, Advanced Analytics & Security Visualizations
-- [x] **Phase 8**: Advanced Features (Provider Reputation & Dynamic Selection)
-
----
-
-## 📄 License
-
-MIT License.
+This is a development implementation, not an audited payment product. Live mode
+supports one configured signing wallet, and service execution follows payment
+without automatic refunds. There is no production LLM integration, wallet key
+provisioning, finality/reorg worker, or background settlement reconciler.

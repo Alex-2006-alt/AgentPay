@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Literal
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -8,6 +8,11 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
+    PAYMENT_MODE: Literal["simulation", "live"] = "simulation"
+    API_KEYS: dict[str, str] = {}  # bearer token -> user id; provision out of band
+    ADMIN_USER_IDS: List[str] = []
+    SERVICE_ORIGINS: List[str] = []  # explicitly trusted HTTPS provider origins
+    SEED_DEMO_DATA: bool = True
 
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
@@ -22,7 +27,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./agentpay.db"
 
     # AI Provider
-    AI_PROVIDER: str = "mock"  # "gemini", "openai", "mock"
+    AI_PROVIDER: str = "mock"  # Reserved; the current planner is deterministic.
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
     LLM_MODEL: str = "gemini-2.0-flash"
@@ -33,7 +38,7 @@ class Settings(BaseSettings):
     AGENTPAY_CONTRACT_ADDRESS: str = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
     MOCK_USDC_CONTRACT_ADDRESS: str = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
     PAYMENT_MANAGER_CONTRACT_ADDRESS: str = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-    AGENT_RELAYER_PRIVATE_KEY: str = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    AGENT_RELAYER_PRIVATE_KEY: str = ""
 
     # Default Policy Controls
     DEFAULT_MAX_TRANSACTION: float = 0.10

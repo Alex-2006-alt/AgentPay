@@ -1,13 +1,14 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
+from sqlalchemy import event
 
 from app.config import settings
 
 # Determine database connect arguments (e.g. for SQLite)
 connect_args = {}
 if "sqlite" in settings.DATABASE_URL:
-    connect_args = {"check_same_thread": False}
+    connect_args = {"check_same_thread": False, "timeout": 30}
 
 engine = create_async_engine(
     settings.DATABASE_URL,
@@ -15,6 +16,13 @@ engine = create_async_engine(
     future=True,
     connect_args=connect_args,
 )
+
+if "sqlite" in settings.DATABASE_URL:
+    @event.listens_for(engine.sync_engine, "connect")
+    def enable_foreign_keys(connection, _):
+        cursor = connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
@@ -46,6 +54,9 @@ async def init_db() -> None:
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    if not settings.SEED_DEMO_DATA or settings.PAYMENT_MODE == "live":
+        return
         
     # Seed initial demo data
     async with AsyncSessionLocal() as session:
@@ -287,17 +298,6 @@ async def init_db() -> None:
                 session.add(policy)
                 await session.commit()
                 
-                # Sync default agent policy with blockchain
-                from app.blockchain.client import BlockchainClient
-                try:
-                    bc = BlockchainClient()
-                    bc.register_agent_policy(
-                        agent.wallet_address,
-                        policy.max_transaction,
-                        ["0x70997970C51812dc3A010C7d01b50e0d17dc79C8"]
-                    )
-                except Exception as e:
-                    print(f"Warning: Could not sync policy to blockchain: {e}")
-                    
         except Exception:
             await session.rollback()
+            raise

@@ -1,18 +1,7 @@
-# 🎨 AgentPay Frontend
+# Frontend
 
-Modern, dark-themed AI + FinTech + Web3 Dashboard and Autonomous Agent Console built with React 18, TypeScript, Vite, and Tailwind CSS.
+React, TypeScript, Vite and React Query dashboard. Run `npm ci`, then `npm run dev`. Verify with `npm run build` and `npm run lint`.
 
-## Pages
-- `/dashboard`: High-level metrics, spending velocity, and settlement graphs.
-- `/agent`: Autonomous AI agent execution timeline and live reasoning feed.
-- `/marketplace`: Microservice directory with prices, ratings, and latency.
-- `/wallet`: Agent testnet wallet balance, EVM network info, and limits.
-- `/transactions`: Real-time transaction ledger with blockchain proofs.
-- `/policies`: Interactive policy engine configuration (Max Tx, Daily Budget, Whitelist).
+`VITE_API_URL` defaults to `http://localhost:8000`. Enter an operator-provisioned API credential in the sign-in screen; credentials remain in memory. The banner identifies simulation or live mode. Choose an owned agent from the selector.
 
-## Quickstart
-```bash
-npm install
-npm run dev
-```
-Runs at `http://localhost:5173`.
+See [setup](../docs/setup.md) for backend credentials and Docker development instructions.

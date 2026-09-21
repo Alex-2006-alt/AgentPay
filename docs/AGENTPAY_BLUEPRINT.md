@@ -1,3 +1,5 @@
+> Historical design document. For current supported behavior and limitations, see README.md and docs/security.md.
+
 🚀 AgentPay — Complete Project Blueprint
 1. 🎯 Core Objective
 

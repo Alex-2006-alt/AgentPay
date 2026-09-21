@@ -23,7 +23,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 border border-white/50 shadow-sm text-xs">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-slate-500 font-medium">Agent:</span>
-          <span className="font-bold text-slate-800">Primary Autonome</span>
+          <span className="font-bold text-slate-800">Connected agent</span>
         </div>
 
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-100/50 border border-indigo-200/40 text-xs text-indigo-700 font-medium shadow-sm">
@@ -41,7 +41,7 @@ export const Navbar: React.FC = () => {
             <span>Balance:</span>
           </div>
           <span className="font-mono text-sm font-bold text-slate-900">
-            ${wallet?.balance !== undefined ? wallet.balance.toFixed(3) : '10.000'} <span className="text-slate-500 text-xs">{wallet?.currency || 'USDC'}</span>
+            ${wallet?.balance !== undefined ? wallet.balance.toFixed(3) : '—'} <span className="text-slate-500 text-xs">{wallet?.currency || 'USDC'}</span>
           </span>
           <button
             onClick={() => refetchWallet()}

@@ -2,6 +2,7 @@ from datetime import datetime
 import uuid
 from sqlalchemy import (
     Boolean,
+    BigInteger,
     Column,
     DateTime,
     Float,
@@ -160,3 +161,47 @@ class ServiceCall(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     transaction = relationship("Transaction", back_populates="service_calls")
+
+
+class LedgerAccount(Base):
+    """Integer available balance, initialized once from the legacy wallet."""
+    __tablename__ = "ledger_accounts"
+    agent_id = Column(String(64), ForeignKey("agents.id"), primary_key=True)
+    balance_units = Column(BigInteger, nullable=False)
+    mode = Column(String(16), nullable=False)
+    chain_id = Column(Integer, nullable=True)
+    token_address = Column(String(64), nullable=True)
+
+
+class PaymentOperation(Base):
+    __tablename__ = "payment_operations"
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    request_key = Column(String(256), unique=True, nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    transaction_id = Column(String(64), ForeignKey("transactions.id"), unique=True, nullable=False)
+    agent_id = Column(String(64), ForeignKey("agents.id"), nullable=False, index=True)
+    amount_units = Column(BigInteger, nullable=False)
+    mode = Column(String(16), nullable=False)
+    chain_id = Column(Integer, nullable=True)
+    contract_address = Column(String(64), nullable=True)
+    signed_transaction = Column(Text, nullable=True)
+    status = Column(String(32), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class PaymentRedemption(Base):
+    __tablename__ = "payment_redemptions"
+    payment_id = Column(String(64), ForeignKey("payments.id"), primary_key=True)
+    request_digest = Column(String(64), nullable=False)
+    response = Column(Text, nullable=False)
+
+
+class TaskRun(Base):
+    __tablename__ = "task_runs"
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    request_key = Column(String(256), nullable=False, unique=True)
+    fingerprint = Column(String(64), nullable=False)
+    agent_id = Column(String(64), ForeignKey("agents.id"), nullable=False)
+    status = Column(String(32), nullable=False, default="running")
+    response = Column(Text, nullable=True)
+    plan = Column(Text, nullable=True)

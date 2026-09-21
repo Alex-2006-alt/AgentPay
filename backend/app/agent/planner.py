@@ -9,7 +9,7 @@ class TaskPlanner:
     def __init__(self):
         """
         Initializes the TaskPlanner.
-        Supports both live LLM reasoning (Gemini) and robust deterministic intent extraction.
+        Deterministic keyword classifier; this is not an LLM planner.
         """
         self.intent_map = {
             r"translate|hindi|spanish|french|language|german|japanese": ["Language"],
@@ -49,8 +49,7 @@ class TaskPlanner:
                         needed_categories.append(cat)
 
         # 3. Default fallback if no specific intent matched
-        if not needed_categories:
-            needed_categories = ["Language", "Analysis"]
+        # Unknown requests must not silently purchase unrelated services.
 
         logger.info(f"Task analyzed: '{task}' -> Categories: {needed_categories}")
         return needed_categories, is_attack, attack_amount

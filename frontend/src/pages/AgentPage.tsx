@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Bot,
@@ -10,7 +10,6 @@ import {
   Clock,
   Coins,
   ShieldCheck,
-  ExternalLink,
   Lock,
 } from 'lucide-react';
 import { agentPayApi } from '../services/api';
@@ -19,10 +18,14 @@ import type { AgentTaskResponse } from '../types';
 export const AgentPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [taskInput, setTaskInput] = useState('');
+  const request = useRef({ text: '', key: '' });
   const [lastResponse, setLastResponse] = useState<AgentTaskResponse | null>(null);
 
   const taskMutation = useMutation({
-    mutationFn: (task: string) => agentPayApi.executeTask(task),
+    mutationFn: (task: string) => {
+      if (request.current.text !== task || !request.current.key) request.current = { text: task, key: crypto.randomUUID() };
+      return agentPayApi.executeTask(task, undefined, request.current.key);
+    },
     onSuccess: (data) => {
       setLastResponse(data);
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
@@ -50,7 +53,7 @@ export const AgentPage: React.FC = () => {
           <span>Agent Execution Console</span>
         </h1>
         <p className="text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
-          Issue autonomous objectives to the AI agent. Watch task decomposition, price discovery, policy guardrail validation, and blockchain settlement in real time.
+          Run supported tasks through deterministic planning, policy checks, payment settlement, and provider invocation. Demo providers return clearly labeled synthetic data.
         </p>
       </div>
 
@@ -96,7 +99,7 @@ export const AgentPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
             <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Deterministic Policy Engine Active (Max Tx: $0.10, Daily: $2.00)</span>
+              <span>Current saved policy applies to every payment</span>
             </div>
 
             <button
@@ -120,6 +123,8 @@ export const AgentPage: React.FC = () => {
         </form>
       </div>
 
+      {taskMutation.isError && <p role="alert" className="rounded border border-red-300 bg-red-50 p-4 text-red-800">Request failed or timed out. Retry unchanged input to reuse the same payment keys.</p>}
+      {(lastResponse || taskMutation.isError) && <button disabled={taskMutation.isPending} className="text-sm underline" onClick={() => { request.current = { text: '', key: '' }; setLastResponse(null); taskMutation.reset(); }}>Start a new task with this input</button>}
       {/* Execution Timeline & Results */}
       {lastResponse && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -141,11 +146,11 @@ export const AgentPage: React.FC = () => {
                 <div className="font-bold text-sm">
                   {lastResponse.status === 'completed'
                     ? 'Goal Accomplished Successfully'
-                    : 'Transaction Blocked by Guardrail'}
+                    : 'Execution requires attention'}
                 </div>
                 <div className="text-xs mt-0.5 opacity-90 font-medium">
                   {lastResponse.status === 'completed'
-                    ? `Settled on EVM Testnet for $${lastResponse.total_cost.toFixed(4)} USDC`
+                    ? `${lastResponse.settlement_mode === 'simulation' ? 'Simulated cost' : 'Confirmed payments'}: $${lastResponse.total_cost.toFixed(4)} USDC`
                     : lastResponse.error}
                 </div>
               </div>
@@ -193,15 +198,7 @@ export const AgentPage: React.FC = () => {
                       {step.tx_hash && (
                         <div className="mt-3 pt-3 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-600 font-medium">
                           <span className="bg-white/60 px-1.5 py-0.5 rounded border border-slate-300/50">Tx: {step.tx_hash.slice(0, 16)}...</span>
-                          <a
-                            href={`https://sepolia.arbiscan.io/tx/${step.tx_hash}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-1 hover:text-indigo-700 transition-colors"
-                          >
-                            <span>Explorer</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
+
                         </div>
                       )}
                     </div>
@@ -226,9 +223,9 @@ export const AgentPage: React.FC = () => {
               ) : (
                 <div className="flex-1 bg-rose-100/30 border border-dashed border-rose-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
                   <ShieldAlert className="w-12 h-12 text-rose-500 mb-4" />
-                  <p className="text-sm font-bold text-slate-900">Execution Aborted by Policy</p>
+                  <p className="text-sm font-bold text-slate-900">No service output available</p>
                   <p className="text-xs text-slate-600 mt-2 max-w-sm leading-relaxed">
-                    No output was generated because the payment request failed deterministic security validation.
+                    Check the execution status and error above. Pending payments must be resolved before continuing.
                   </p>
                 </div>
               )}

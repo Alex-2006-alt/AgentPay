@@ -58,6 +58,7 @@ typechain/
 typechain-types/
 coverage/
 coverage.json
+.runtime/
 
 # IDE & OS
 .idea/

@@ -1,19 +1,7 @@
-# 🚀 AgentPay Backend
+# Backend
 
-FastAPI asynchronous backend powering the AgentPay Agent Planning, Policy Guardrails, Microservice Marketplace, and Settlement verification.
+FastAPI API, shared policy/payment engine, integer USDC ledger and deterministic task executor.
 
-## Structure
-- `app/api/`: REST endpoint routes.
-- `app/agent/`: AI agent planner, tool registry, and execution loop.
-- `app/policy/`: Deterministic guardrails engine (spending caps, whitelists).
-- `app/blockchain/`: Web3 wallet management and contract verification.
-- `app/database/`: SQLAlchemy async engine and relational models.
-- `app/services/`: Demo microservice endpoints (`/weather`, `/translate`, `/summarize`).
+See [setup](../docs/setup.md), [API](../docs/api.md), and [security](../docs/security.md). Private routes require configured bearer credentials. The default payment mode is simulation.
 
-## Quickstart
-```bash
-python -m venv .venv
-# Activate virtual environment
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
+Install `requirements.txt` in a virtual environment, then run `uvicorn app.main:app --host 127.0.0.1 --port 8000`. Run `python -m pytest -q` for the isolated backend tests.

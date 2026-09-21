@@ -34,7 +34,8 @@ async def test_payment_request_and_policy_approval(client):
     data = response.json()
     assert data["approved"] is True
     assert data["payment"] is not None
-    assert data["payment"]["status"] == "completed"
+    assert data["payment"]["status"] == "simulated"
+    assert data["payment"]["tx_hash"] is None
 
 
 @pytest.mark.asyncio
@@ -51,7 +52,7 @@ async def test_policy_rejection_on_excess_amount(client):
     assert response.status_code == 200
     data = response.json()
     assert data["approved"] is False
-    assert "exceeds max per-tx limit" in data["reason"]
+    assert data["payment"]["status"] == "rejected"
 
 
 @pytest.mark.asyncio
@@ -76,4 +77,4 @@ async def test_agent_task_execution(client):
     assert data["status"] == "completed"
     assert len(data["steps"]) >= 4
     assert data["total_cost"] > 0
-    assert "Translation" in data["final_output"]
+    assert "translation" in data["final_output"]

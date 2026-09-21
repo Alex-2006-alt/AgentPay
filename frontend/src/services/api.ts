@@ -10,13 +10,27 @@ import type {
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+let activeAgentId = 'agent_primary';
+export const selectAgent = (id: string) => { activeAgentId = id; };
+export const setApiToken = (token: string) => {
+  if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+  else delete apiClient.defaults.headers.common.Authorization;
+};
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 20000,
+  timeout: 180000,
+});
+
+apiClient.interceptors.response.use(response => response, error => {
+  const detail = error.response?.data?.detail;
+  window.dispatchEvent(new CustomEvent('agentpay-api-error', {
+    detail: typeof detail === 'string' ? detail : 'API request failed. Check your connection and credential.',
+  }));
+  return Promise.reject(error);
 });
 
 export const agentPayApi = {
@@ -45,19 +59,19 @@ export const agentPayApi = {
     return res.data;
   },
 
-  getAgentWallet: async (agentId: string = 'agent_primary'): Promise<Wallet> => {
+  getAgentWallet: async (agentId: string = activeAgentId): Promise<Wallet> => {
     const res = await apiClient.get<Wallet>(`/agents/${agentId}/wallet`);
     return res.data;
   },
 
   // Policies
-  getAgentPolicy: async (agentId: string = 'agent_primary'): Promise<Policy> => {
+  getAgentPolicy: async (agentId: string = activeAgentId): Promise<Policy> => {
     const res = await apiClient.get<Policy>(`/agents/${agentId}/policies`);
     return res.data;
   },
 
   updateAgentPolicy: async (
-    agentId: string = 'agent_primary',
+    agentId: string = activeAgentId,
     policy: Partial<Policy>
   ): Promise<Policy> => {
     const res = await apiClient.put<Policy>(`/agents/${agentId}/policies`, policy);
@@ -80,12 +94,13 @@ export const agentPayApi = {
   // Agent Task Execution
   executeTask: async (
     task: string,
-    agentId: string = 'agent_primary'
+    agentId: string = activeAgentId,
+    requestKey: string = crypto.randomUUID()
   ): Promise<AgentTaskResponse> => {
     const res = await apiClient.post<AgentTaskResponse>('/agent/task', {
       agent_id: agentId,
       task,
-    });
+    }, { headers: { 'Idempotency-Key': requestKey } });
     return res.data;
   },
 
@@ -93,14 +108,15 @@ export const agentPayApi = {
   requestPayment: async (
     serviceId: string,
     amount: number,
-    agentId: string = 'agent_primary'
+    agentId: string = activeAgentId,
+    requestKey: string = crypto.randomUUID()
   ) => {
     const res = await apiClient.post('/payments/request', {
       agent_id: agentId,
       service_id: serviceId,
       amount,
       currency: 'USDC',
-    });
+    }, { headers: { 'Idempotency-Key': requestKey } });
     return res.data;
   },
 };

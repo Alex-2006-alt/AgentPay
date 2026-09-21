@@ -1,127 +1,60 @@
-import secrets
-from typing import List, Optional, Tuple
+from types import SimpleNamespace
+from urllib.parse import urlsplit
+import httpx
+from fastapi import HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.config import settings
+from app.database.models import Policy, Service
+from app.api.demo_services import DEMO_ENDPOINTS
 
-from app.database.models import Agent, Payment, Policy, Service, Transaction, Wallet
-from app.schemas.agent_task import ExecutionStep
+
+def validate_endpoint(endpoint):
+    if endpoint in {f"/api/demo/{name}" for name in DEMO_ENDPOINTS}:
+        return "demo"
+    parsed = urlsplit(endpoint)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    if parsed.scheme != "https" or parsed.username or parsed.password or origin not in settings.SERVICE_ORIGINS:
+        raise HTTPException(409, "Provider must use a known demo endpoint or an explicitly trusted HTTPS origin")
+    return "external"
 
 
 class AgentTools:
-    """
-    Encapsulates the tools available to the Agent.
-    """
-    
     @staticmethod
-    async def get_agent_context(db: AsyncSession, agent_id: str) -> Tuple[Agent, Policy, Wallet]:
-        agent = await db.get(Agent, agent_id)
-        if not agent:
-            # Fallback to first agent
-            res_agent = await db.execute(select(Agent).limit(1))
-            agent = res_agent.scalars().first()
-            agent_id = agent.id if agent else "agent_primary"
-
-        res_policy = await db.execute(select(Policy).where(Policy.agent_id == agent_id))
-        policy = res_policy.scalars().first()
-
-        res_wallet = await db.execute(select(Wallet).where(Wallet.agent_id == agent_id))
-        wallet = res_wallet.scalars().first()
-        
-        return agent, policy, wallet
-
-    @staticmethod
-    async def discover_best_services_by_category(db: AsyncSession, categories: List[str]) -> Tuple[List[Service], List[dict]]:
-        """Looks up all services for the required categories and selects the best one per category."""
-        if not categories:
-            return [], []
-            
-        best_services = []
-        comparison_logs = []
-        
+    async def discover(db, agent_id, categories):
+        policy = (await db.execute(select(Policy).where(Policy.agent_id == agent_id))).scalar_one_or_none()
+        if not policy:
+            raise HTTPException(409, "Agent requires a policy")
+        allowed = {value.strip() for value in policy.approved_services.split(",") if value.strip()}
+        selected = []
         for category in categories:
-            res = await db.execute(select(Service).where(Service.category == category, Service.status == "active"))
-            services_in_cat = res.scalars().all()
-            
-            if not services_in_cat:
-                continue
-                
-            # Score each service: simple heuristic (Rating / Price)
-            # The higher the rating and the lower the price, the better the score.
-            scored_services = []
-            for s in services_in_cat:
-                # Avoid division by zero
-                price = s.price if s.price > 0 else 0.0001
-                score = (s.rating / 5.0) / price
-                scored_services.append((s, score))
-                
-            # Sort by score descending
-            scored_services.sort(key=lambda x: x[1], reverse=True)
-            
-            best_service = scored_services[0][0]
-            best_services.append(best_service)
-            
-            # Create a log entry for the UI
-            comparison_logs.append({
-                "category": category,
-                "candidates": len(services_in_cat),
-                "selected_name": best_service.name,
-                "selected_price": best_service.price,
-                "selected_rating": best_service.rating,
-                "all_scores": [{"name": s.name, "score": round(score, 2), "price": s.price, "rating": s.rating} for s, score in scored_services]
-            })
-            
-        return best_services, comparison_logs
+            candidates = (await db.execute(select(Service).where(Service.category == category,
+                          Service.status == "active"))).scalars().all()
+            candidates = [s for s in candidates if "*" in allowed or s.id in allowed]
+            if not candidates:
+                raise HTTPException(409, f"No approved active provider for {category}")
+            service = max(candidates, key=lambda s: (s.rating / max(s.price, 0.000001), s.id))
+            validate_endpoint(service.endpoint)
+            # Snapshot values: payment transactions rollback earlier read sessions.
+            selected.append(SimpleNamespace(id=service.id, price=service.price, currency=service.currency,
+                name=service.name, category=service.category, endpoint=service.endpoint))
+        return selected
 
     @staticmethod
-    async def record_transaction(
-        db: AsyncSession, 
-        agent_id: str, 
-        service_id: str, 
-        amount: float, 
-        status: str, 
-        rejection_reason: Optional[str] = None,
-        tx_hash: Optional[str] = None
-    ) -> Transaction:
-        """Records a transaction in the database."""
-        tx = Transaction(
-            agent_id=agent_id,
-            service_id=service_id,
-            amount=amount,
-            currency="USDC",
-            status=status,
-            rejection_reason=rejection_reason,
-            tx_hash=tx_hash,
-            block_number=18492042 if tx_hash else None,
-        )
-        db.add(tx)
-        await db.flush()
-        return tx
-
-    @staticmethod
-    async def process_payment(
-        db: AsyncSession, 
-        tx: Transaction, 
-        wallet: Wallet, 
-        agent: Agent, 
-        amount: float
-    ) -> Payment:
-        """Processes the payment and updates wallet balance."""
-        mock_tx_hash = tx.tx_hash or f"0x{secrets.token_hex(32)}"
-        payment = Payment(
-            transaction_id=tx.id,
-            payer_address=wallet.address if wallet else agent.wallet_address,
-            recipient_address="0x1234567890123456789012345678901234567890",
-            amount=amount,
-            currency="USDC",
-            tx_hash=mock_tx_hash,
-            nonce=secrets.token_hex(8),
-            status="verified",
-        )
-        db.add(payment)
-        
-        if wallet:
-            wallet.balance = max(0.0, wallet.balance - amount)
-            
-        await db.flush()
-        return payment
-
+    async def invoke(service, payment, payload, authorization):
+        kind = validate_endpoint(service.endpoint)
+        headers = {"X-Payment-Id": payment.payment_id, "Idempotency-Key": payment.payment_id}
+        if kind == "demo":
+            from app.main import app
+            headers["Authorization"] = authorization
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://internal", timeout=15) as client:
+                response = await client.post(service.endpoint, json=payload, headers=headers)
+        else:
+            if payment.status != "completed" or not payment.tx_hash:
+                raise HTTPException(409, "External providers require confirmed live payments")
+            headers["X-Payment-Tx"] = payment.tx_hash
+            # Never forward this application's bearer credential to providers.
+            async with httpx.AsyncClient(timeout=15, follow_redirects=False, trust_env=False) as client:
+                response = await client.post(service.endpoint, json=payload, headers=headers)
+        response.raise_for_status()
+        return response.json()

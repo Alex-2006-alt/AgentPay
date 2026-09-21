@@ -1,236 +1,102 @@
+"""Live settlement only. Simulation belongs to the payment engine, never here."""
 import json
-import logging
-import os
 from pathlib import Path
 from web3 import Web3
-from web3.exceptions import ContractLogicError
+from web3.logs import DISCARD
 from eth_account import Account
+from app.config import settings
+from app.money import units
 
-# Hardhat's default Account #0
-DEFAULT_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-DEFAULT_RPC_URL = "http://127.0.0.1:8545"
-
-logger = logging.getLogger(__name__)
 
 class BlockchainClient:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(BlockchainClient, cls).__new__(cls)
-            cls._instance._initialized = False
-        return cls._instance
-
     def __init__(self):
-        if self._initialized:
-            return
-        
-        from app.config import settings as app_settings
-            
-        rpc_url = app_settings.EVM_RPC_URL
-        self.w3 = Web3(Web3.HTTPProvider(rpc_url))
-        self.private_key = app_settings.AGENT_RELAYER_PRIVATE_KEY or DEFAULT_PRIVATE_KEY
-        self.account = Account.from_key(self.private_key)
-        
-        # Load Contract Addresses from config
-        self.agent_pay_address = app_settings.AGENTPAY_CONTRACT_ADDRESS
-        self.mock_usdc_address = app_settings.MOCK_USDC_CONTRACT_ADDRESS
-        self.payment_manager_address = app_settings.PAYMENT_MANAGER_CONTRACT_ADDRESS
-        
-        # Fallback: load from Hardhat Ignition deployment if addresses are zero/empty
-        zero_addr = "0x0000000000000000000000000000000000000000"
-        if not self.agent_pay_address or self.agent_pay_address == zero_addr:
-            self._load_deployed_addresses()
+        if not settings.AGENT_RELAYER_PRIVATE_KEY:
+            raise ValueError("Live payments require an explicitly configured signing key")
+        self.w3 = Web3(Web3.HTTPProvider(settings.EVM_RPC_URL, request_kwargs={"timeout": 10}))
+        self.account = Account.from_key(settings.AGENT_RELAYER_PRIVATE_KEY)
+        self.agent_pay_address = Web3.to_checksum_address(settings.AGENTPAY_CONTRACT_ADDRESS)
+        self.mock_usdc_address = Web3.to_checksum_address(settings.MOCK_USDC_CONTRACT_ADDRESS)
+        directory = Path(__file__).resolve().parents[3] / "contracts" / "artifacts" / "contracts"
+        def contract(name, address):
+            with open(directory / f"{name}.sol" / f"{name}.json", encoding="utf-8") as handle:
+                return self.w3.eth.contract(address=Web3.to_checksum_address(address), abi=json.load(handle)["abi"])
+        self.agent_pay_contract = contract("AgentPay", self.agent_pay_address)
+        self.payment_manager_contract = contract("PaymentManager", settings.PAYMENT_MANAGER_CONTRACT_ADDRESS)
+        self.token = contract("MockUSDC", self.mock_usdc_address)
 
-        self._load_abis()
-        self._initialized = True
+    def check_network(self):
+        if self.w3.eth.chain_id != settings.CHAIN_ID:
+            raise ValueError("RPC chain does not match configured CHAIN_ID")
+        for contract in (self.agent_pay_contract, self.payment_manager_contract, self.token):
+            if not self.w3.eth.get_code(contract.address):
+                raise ValueError("Configured contract has no code on this chain")
+        if self.agent_pay_contract.functions.paymentManager().call().lower() != self.payment_manager_contract.address.lower():
+            raise ValueError("Payment manager configuration mismatch")
+        if self.agent_pay_contract.functions.usdcToken().call().lower() != self.token.address.lower():
+            raise ValueError("Token configuration mismatch")
+        if self.payment_manager_contract.functions.paymentContract().call().lower() != self.agent_pay_address.lower():
+            raise ValueError("Payment contract is not authorized to record spending")
+        if self.token.functions.decimals().call() != 6:
+            raise ValueError("Only six-decimal USDC is supported")
 
-    def _load_deployed_addresses(self):
-        # Fallback to load addresses from the Hardhat Ignition deployment
-        # Looking at AgentPayModule in chain-1337 or chain-31337
-        try:
-            contracts_dir = Path(__file__).parent.parent.parent.parent / "contracts"
-            deploy_dir = contracts_dir / "ignition" / "deployments"
-            
-            # Check possible chain directories
-            addr_file = None
-            for chain_dir in ["chain-1337", "chain-31337"]:
-                possible_file = deploy_dir / chain_dir / "deployed_addresses.json"
-                if possible_file.exists():
-                    addr_file = possible_file
-                    break
-                    
-            if addr_file:
-                with open(addr_file, "r") as f:
-                    data = json.load(f)
-                    self.agent_pay_address = data.get("AgentPayModule#AgentPay", "")
-                    self.mock_usdc_address = data.get("AgentPayModule#MockUSDC", "")
-                    self.payment_manager_address = data.get("AgentPayModule#PaymentManager", "")
-        except Exception as e:
-            logger.warning(f"Could not load deployed addresses: {e}")
-
-    def _load_abis(self):
-        try:
-            contracts_dir = Path(__file__).parent.parent.parent.parent / "contracts"
-            artifacts_dir = contracts_dir / "artifacts" / "contracts"
-            
-            with open(artifacts_dir / "AgentPay.sol" / "AgentPay.json", "r") as f:
-                self.agent_pay_abi = json.load(f)["abi"]
-                
-            with open(artifacts_dir / "MockUSDC.sol" / "MockUSDC.json", "r") as f:
-                self.mock_usdc_abi = json.load(f)["abi"]
-                
-            with open(artifacts_dir / "PaymentManager.sol" / "PaymentManager.json", "r") as f:
-                self.payment_manager_abi = json.load(f)["abi"]
-                
-            if self.agent_pay_address:
-                self.agent_pay_contract = self.w3.eth.contract(address=self.agent_pay_address, abi=self.agent_pay_abi)
-            else:
-                self.agent_pay_contract = None
-                
-            if self.mock_usdc_address:
-                self.mock_usdc_contract = self.w3.eth.contract(address=self.mock_usdc_address, abi=self.mock_usdc_abi)
-            else:
-                self.mock_usdc_contract = None
-                
-            if self.payment_manager_address:
-                self.payment_manager_contract = self.w3.eth.contract(address=self.payment_manager_address, abi=self.payment_manager_abi)
-            else:
-                self.payment_manager_contract = None
-                
-        except Exception as e:
-            logger.warning(f"Could not load ABIs: {e}")
-            self.agent_pay_abi = []
-            self.mock_usdc_abi = []
-            self.payment_manager_abi = []
-            self.agent_pay_contract = None
-            self.mock_usdc_contract = None
-            self.payment_manager_contract = None
-
-    def _ensure_approval(self, amount_wei: int):
-        if not self.mock_usdc_contract:
-            return
-            
-        # 1. Check if we need to mint some Mock USDC first
-        balance = self.mock_usdc_contract.functions.balanceOf(self.account.address).call()
-        if balance < amount_wei:
-            mint_amount = 1000 * (10 ** 6) # Mint 1000 USDC
-            tx = self.mock_usdc_contract.functions.mint(
-                self.account.address, mint_amount
-            ).build_transaction({
-                'from': self.account.address,
-                'nonce': self.w3.eth.get_transaction_count(self.account.address),
-                'gas': 100000,
-                'gasPrice': self.w3.eth.gas_price
-            })
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-
-        # 2. Approve AgentPay
-        allowance = self.mock_usdc_contract.functions.allowance(
-            self.account.address, self.agent_pay_address
-        ).call()
-        
-        if allowance < amount_wei:
-            # Approve a large amount (e.g., 10,000 USDC)
-            large_amount = 10000 * (10 ** 6)
-            tx = self.mock_usdc_contract.functions.approve(
-                self.agent_pay_address,
-                large_amount
-            ).build_transaction({
-                'from': self.account.address,
-                'nonce': self.w3.eth.get_transaction_count(self.account.address),
-                'gas': 100000,
-                'gasPrice': self.w3.eth.gas_price
-            })
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-
-    def register_agent_policy(self, agent_address: str, max_tx_usdc: float, approved_services: list):
-        if not self.payment_manager_contract:
-            return
-            
-        max_tx_wei = int(max_tx_usdc * (10 ** 6))
-        daily_limit_wei = int((max_tx_usdc * 100) * (10 ** 6)) # just a generic large daily limit
-        
-        # 1. Set Limits
-        tx = self.payment_manager_contract.functions.setLimits(
-            self.w3.to_checksum_address(agent_address),
-            daily_limit_wei,
-            max_tx_wei
-        ).build_transaction({
-            'from': self.account.address,
-            'nonce': self.w3.eth.get_transaction_count(self.account.address),
-            'gas': 300000,
-            'gasPrice': self.w3.eth.gas_price
+    def prepare_payment(self, agent_address, service_address, amount_units, policy):
+        """Build a signed transaction without broadcasting it. Persist its hash first."""
+        self.check_network()
+        agent = Web3.to_checksum_address(agent_address)
+        service = Web3.to_checksum_address(service_address)
+        if agent != self.account.address:
+            raise ValueError("Agent wallet does not match the configured live signer")
+        manager = self.payment_manager_contract.functions
+        if (manager.maxTxLimits(agent).call() != units(policy.max_transaction)
+                or manager.dailyLimits(agent).call() != units(policy.daily_limit)
+                or manager.monthlyLimits(agent).call() != units(policy.monthly_limit)
+                or manager.paymentsEnabled(agent).call() != policy.auto_payment
+                or not manager.approvedServices(agent, service).call()):
+            raise ValueError("On-chain policy differs from the requested policy; synchronize it first")
+        call = self.agent_pay_contract.functions.makePayment(service, amount_units)
+        gas = call.estimate_gas({"from": agent})
+        transaction = call.build_transaction({
+            "from": agent, "nonce": self.w3.eth.get_transaction_count(agent, "pending"),
+            "chainId": settings.CHAIN_ID, "gas": gas + gas // 5,
+            "gasPrice": self.w3.eth.gas_price,
         })
-        signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-        
-        # 2. Approve Services
-        for s in approved_services:
-            tx = self.payment_manager_contract.functions.setServiceApproval(
-                self.w3.to_checksum_address(agent_address),
-                self.w3.to_checksum_address(s),
-                True
-            ).build_transaction({
-                'from': self.account.address,
-                'nonce': self.w3.eth.get_transaction_count(self.account.address),
-                'gas': 300000,
-                'gasPrice': self.w3.eth.gas_price
-            })
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        signed = self.account.sign_transaction(transaction)
+        return Web3.to_hex(signed.hash), signed.raw_transaction
 
-    def execute_payment(self, service_address: str, amount_usdc: float) -> str:
-        """
-        Executes a payment on the blockchain using the AgentPay contract.
-        Returns the transaction hash.
-        If not connected to a live node or contracts are not deployed, falls back to a verifiable simulated tx hash.
-        """
-        import secrets
-        
-        # Check if live Web3 connection and contracts are available
-        try:
-            if self.w3.is_connected() and self.agent_pay_contract:
-                # Convert USDC amount (assuming 6 decimals)
-                amount_wei = int(amount_usdc * (10 ** 6))
-                
-                # Make sure AgentPay can spend our USDC
-                self._ensure_approval(amount_wei)
-                
-                # Build Transaction
-                tx = self.agent_pay_contract.functions.makePayment(
-                    self.w3.to_checksum_address(service_address),
-                    amount_wei
-                ).build_transaction({
-                    'from': self.account.address,
-                    'nonce': self.w3.eth.get_transaction_count(self.account.address),
-                    'gas': 300000,
-                    'gasPrice': self.w3.eth.gas_price
-                })
-                
-                # Sign and Send
-                signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-                tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-                
-                # Wait for receipt
-                receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-                if receipt.status == 0:
-                    raise ValueError("Transaction failed/reverted on chain (unknown reason)")
-                    
-                return self.w3.to_hex(tx_hash)
-        except ContractLogicError as e:
-            raise ValueError(f"Blockchain execution reverted: {e}")
-        except Exception as e:
-            logger.info(f"Live Web3 execution fallback to simulation mode: {e}")
-            
-        # Fallback simulation mode (generates standard 32-byte 0x transaction hash)
-        simulated_hash = f"0x{secrets.token_hex(32)}"
-        logger.info(f"Generated simulated transaction hash on EVM: {simulated_hash}")
-        return simulated_hash
+    def broadcast(self, raw_transaction):
+        return self.w3.eth.send_raw_transaction(raw_transaction)
 
+    def verify(self, tx_hash, payer, recipient, amount_units):
+        """Verify chain, contract, successful receipt and the exact payment event."""
+        self.check_network()
+        receipt = self.w3.eth.get_transaction_receipt(tx_hash)
+        if receipt["to"].lower() != self.agent_pay_address.lower() or receipt["from"].lower() != payer.lower():
+            raise ValueError("Payment receipt sender or contract mismatch")
+        if receipt["status"] == 0:
+            return "failed", receipt["blockNumber"]
+        events = self.agent_pay_contract.events.PaymentCompleted().process_receipt(receipt, errors=DISCARD)
+        matches = [event for event in events if event["address"].lower() == self.agent_pay_address.lower()
+                   and event["args"]["agent"].lower() == payer.lower()
+                   and event["args"]["service"].lower() == recipient.lower()
+                   and event["args"]["amount"] == amount_units]
+        if len(matches) != 1:
+            raise ValueError("Receipt does not prove the expected payment")
+        return "completed", receipt["blockNumber"]
+
+    def sync_policy(self, agent_address, policy, approvals):
+        self.check_network()
+        if Web3.to_checksum_address(agent_address) != self.account.address:
+            raise ValueError("Agent wallet does not match configured live signer")
+        manager = self.payment_manager_contract.functions
+        calls = [manager.setPolicy(Web3.to_checksum_address(agent_address), units(policy.daily_limit),
+                                  units(policy.monthly_limit), units(policy.max_transaction), policy.auto_payment)]
+        calls.extend(manager.setServiceApproval(Web3.to_checksum_address(agent_address),
+                     Web3.to_checksum_address(address), approved) for address, approved in approvals.items())
+        for call in calls:
+            tx = call.build_transaction({"from": self.account.address, "chainId": settings.CHAIN_ID,
+                 "nonce": self.w3.eth.get_transaction_count(self.account.address, "pending")})
+            signed = self.account.sign_transaction(tx)
+            tx_hash = self.broadcast(signed.raw_transaction)
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=30)
+            if receipt.status != 1:
+                raise ValueError("On-chain policy update reverted")
